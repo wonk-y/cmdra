@@ -54,6 +54,8 @@ The active section changes from the navigation panel. `tab` and `shift+tab` are 
 - downloading files
 - downloading zip archives
 - canceling running work
+- deleting one finished execution or transfer from history
+- clearing finished history for the authenticated identity
 - attaching to a running execution or shell session
 
 ## Common controls
@@ -65,6 +67,8 @@ j / k or arrows     drive the focused non-form panel
 r                   refresh the current data
 a                   attach from the focused execution list
 c                   cancel from the focused execution or transfer list
+x                   press twice to delete the selected finished execution or transfer
+X                   press twice to clear finished history for the authenticated identity
 o                   toggle persisted output from the focused detail panel
 enter               submit the focused form
 [ / ]               switch form mode
@@ -78,6 +82,11 @@ Panel behavior:
 - main panel focused on a list: `j/k` moves through list items
 - main panel focused on a form: `tab` and `shift+tab` move between form fields; when the last field is reached, `tab` moves to the next pane, and when the first field is reached, `shift+tab` moves to the previous pane
 - detail panel focused: `j/k` scrolls detail and output content
+
+History cleanup behavior:
+
+- `x` only deletes finished items from history; running items return a failed-precondition error
+- `X` clears finished history for the authenticated identity and leaves running items in place
 
 ## Attach mode
 

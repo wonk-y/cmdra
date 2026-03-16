@@ -28,6 +28,8 @@ start-shell
 start-session
 list
 get
+delete
+clear-history
 cancel
 output
 attach
@@ -76,6 +78,22 @@ download-archive
 ```
 
 `get` combines metadata from `GetExecution` with persisted output from `ReadOutput`.
+
+## Delete one finished execution or transfer from history
+
+```bash
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
+  delete --id exec-123
+```
+
+## Clear finished history for the authenticated identity
+
+```bash
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
+  clear-history --yes
+```
+
+`clear-history` deletes finished executions and transfers for the calling client identity. Running items are preserved and counted in the response.
 
 ## Cancel a running command
 

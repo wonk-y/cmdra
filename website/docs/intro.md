@@ -25,6 +25,8 @@ Use this site to:
 - stdout and stderr replay from persisted history
 - file upload, file download, and archive download
 - execution and transfer metadata retention in SQLite under `-data-dir`
+- deletion of one finished execution or transfer from history
+- clearing finished history for the authenticated identity
 - foreground mode and service mode on Linux, macOS, and Windows
 
 ## Recommended reading order

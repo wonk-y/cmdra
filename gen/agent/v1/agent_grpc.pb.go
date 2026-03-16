@@ -23,6 +23,8 @@ const (
 	AgentService_StartShell_FullMethodName      = "/agent.v1.AgentService/StartShell"
 	AgentService_GetExecution_FullMethodName    = "/agent.v1.AgentService/GetExecution"
 	AgentService_ListExecutions_FullMethodName  = "/agent.v1.AgentService/ListExecutions"
+	AgentService_DeleteExecution_FullMethodName = "/agent.v1.AgentService/DeleteExecution"
+	AgentService_ClearHistory_FullMethodName    = "/agent.v1.AgentService/ClearHistory"
 	AgentService_CancelExecution_FullMethodName = "/agent.v1.AgentService/CancelExecution"
 	AgentService_ReadOutput_FullMethodName      = "/agent.v1.AgentService/ReadOutput"
 	AgentService_Attach_FullMethodName          = "/agent.v1.AgentService/Attach"
@@ -39,6 +41,8 @@ type AgentServiceClient interface {
 	StartShell(ctx context.Context, in *StartShellRequest, opts ...grpc.CallOption) (*StartShellResponse, error)
 	GetExecution(ctx context.Context, in *GetExecutionRequest, opts ...grpc.CallOption) (*GetExecutionResponse, error)
 	ListExecutions(ctx context.Context, in *ListExecutionsRequest, opts ...grpc.CallOption) (*ListExecutionsResponse, error)
+	DeleteExecution(ctx context.Context, in *DeleteExecutionRequest, opts ...grpc.CallOption) (*DeleteExecutionResponse, error)
+	ClearHistory(ctx context.Context, in *ClearHistoryRequest, opts ...grpc.CallOption) (*ClearHistoryResponse, error)
 	CancelExecution(ctx context.Context, in *CancelExecutionRequest, opts ...grpc.CallOption) (*CancelExecutionResponse, error)
 	ReadOutput(ctx context.Context, in *ReadOutputRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[OutputChunk], error)
 	Attach(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[AttachRequest, AttachEvent], error)
@@ -89,6 +93,26 @@ func (c *agentServiceClient) ListExecutions(ctx context.Context, in *ListExecuti
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListExecutionsResponse)
 	err := c.cc.Invoke(ctx, AgentService_ListExecutions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) DeleteExecution(ctx context.Context, in *DeleteExecutionRequest, opts ...grpc.CallOption) (*DeleteExecutionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteExecutionResponse)
+	err := c.cc.Invoke(ctx, AgentService_DeleteExecution_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) ClearHistory(ctx context.Context, in *ClearHistoryRequest, opts ...grpc.CallOption) (*ClearHistoryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClearHistoryResponse)
+	err := c.cc.Invoke(ctx, AgentService_ClearHistory_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -196,6 +220,8 @@ type AgentServiceServer interface {
 	StartShell(context.Context, *StartShellRequest) (*StartShellResponse, error)
 	GetExecution(context.Context, *GetExecutionRequest) (*GetExecutionResponse, error)
 	ListExecutions(context.Context, *ListExecutionsRequest) (*ListExecutionsResponse, error)
+	DeleteExecution(context.Context, *DeleteExecutionRequest) (*DeleteExecutionResponse, error)
+	ClearHistory(context.Context, *ClearHistoryRequest) (*ClearHistoryResponse, error)
 	CancelExecution(context.Context, *CancelExecutionRequest) (*CancelExecutionResponse, error)
 	ReadOutput(*ReadOutputRequest, grpc.ServerStreamingServer[OutputChunk]) error
 	Attach(grpc.BidiStreamingServer[AttachRequest, AttachEvent]) error
@@ -223,6 +249,12 @@ func (UnimplementedAgentServiceServer) GetExecution(context.Context, *GetExecuti
 }
 func (UnimplementedAgentServiceServer) ListExecutions(context.Context, *ListExecutionsRequest) (*ListExecutionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListExecutions not implemented")
+}
+func (UnimplementedAgentServiceServer) DeleteExecution(context.Context, *DeleteExecutionRequest) (*DeleteExecutionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteExecution not implemented")
+}
+func (UnimplementedAgentServiceServer) ClearHistory(context.Context, *ClearHistoryRequest) (*ClearHistoryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClearHistory not implemented")
 }
 func (UnimplementedAgentServiceServer) CancelExecution(context.Context, *CancelExecutionRequest) (*CancelExecutionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelExecution not implemented")
@@ -335,6 +367,42 @@ func _AgentService_ListExecutions_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_DeleteExecution_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteExecutionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).DeleteExecution(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_DeleteExecution_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).DeleteExecution(ctx, req.(*DeleteExecutionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_ClearHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearHistoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ClearHistory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ClearHistory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ClearHistory(ctx, req.(*ClearHistoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_CancelExecution_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CancelExecutionRequest)
 	if err := dec(in); err != nil {
@@ -422,6 +490,14 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListExecutions",
 			Handler:    _AgentService_ListExecutions_Handler,
+		},
+		{
+			MethodName: "DeleteExecution",
+			Handler:    _AgentService_DeleteExecution_Handler,
+		},
+		{
+			MethodName: "ClearHistory",
+			Handler:    _AgentService_ClearHistory_Handler,
 		},
 		{
 			MethodName: "CancelExecution",

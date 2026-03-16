@@ -25,3 +25,10 @@ go run ./sdk/go/examples/upload_file --local ./README.md --remote /tmp/README.md
 go run ./sdk/go/examples/download_file --remote /tmp/README.md --local ./README.copy
 go run ./sdk/go/examples/download_archive --path /tmp --local ./tmp.zip
 ```
+
+History management is also available through the Go SDK client:
+
+```go
+err := client.DeleteExecution(ctx, "exec-123")
+result, err := client.ClearHistory(ctx)
+```

@@ -33,6 +33,9 @@ client = Client(
 )
 execution = client.start_argv("/bin/echo", ["hello"])
 print(execution.execution_id)
+client.delete_execution(execution.execution_id)
+result = client.clear_history()
+print(result.deleted_count, result.skipped_running_count)
 client.close()
 ```
 
@@ -80,6 +83,27 @@ export PYTHONPATH="$PWD/sdk/python"
   sdk/python/examples/robot_ci.robot
 ```
 
+### Robot history management
+
+The Robot wrapper tracks the Python SDK surface, including `Delete Execution` and `Clear History`.
+
+Example keyword usage:
+
+```robot
+*** Test Cases ***
+Delete One Finished Execution
+    ${execution}=    Start Argv    /bin/echo    hello
+    ${execution_id}=    Set Variable    ${execution.execution_id}
+    ${deleted_id}=    Delete Execution    ${execution_id}
+    Should Be Equal    ${deleted_id}    ${execution_id}
+
+Clear Finished History
+    ${result}=    Clear History
+    Log    deleted=${result.deleted_count} skipped_running=${result.skipped_running_count}
+```
+
+`Delete Execution` only removes finished executions or transfers. `Clear History` removes finished history for the authenticated client identity and leaves running items in place.
+
 ## Ansible
 
 Install the optional extra if needed:
@@ -101,6 +125,8 @@ mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
   -i sdk/python/examples/ansible/inventory.ini \
   sdk/python/examples/ansible/ping.yml
 ```
+
+The Ansible connection plugin is limited to command execution and file transfer. History deletion and clear-history remain SDK and operator-tool operations.
 
 ## Pytest
 

@@ -7,6 +7,8 @@ CmdAgent is a long-running Go daemon that exposes a gRPC API over mutual TLS for
 - starting persistent shell sessions and attaching to them
 - replaying stdout/stderr output
 - listing and retrieving execution metadata for running and finished jobs
+- deleting one finished execution or transfer from history
+- clearing finished history for the authenticated identity
 - uploading files
 - downloading files and zip archives
 - running as a foreground daemon or as an OS service on Linux, macOS, and Windows
@@ -156,11 +158,14 @@ Examples:
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-argv --binary /bin/echo hello
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-shell --command "printf 'hello\n'"
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key get --id exec-123
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key delete --id exec-123
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key clear-history --yes
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key upload --local ./README.md --remote /tmp/README.md
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key download --remote /tmp/README.md --local ./README.copy
 ```
 
 `get` includes persisted output by internally calling both `GetExecution` and `ReadOutput`.
+`delete` removes one finished execution or transfer from persisted history. `clear-history --yes` removes all finished history for the authenticated identity and reports how many running items were preserved.
 
 ## `cmdagentui`
 
@@ -172,6 +177,8 @@ Examples:
 - uploading files
 - downloading files and archives
 - canceling running work
+- deleting one finished execution or transfer from history
+- clearing all finished history for the authenticated identity
 - attaching to running executions and shell sessions
 
 Start it with the same connection flags:
@@ -200,6 +207,8 @@ Common controls:
 - `r`: refresh
 - `a`: attach to the selected running execution when the main list is focused
 - `c`: cancel the selected running execution or transfer when the main list is focused
+- `x`: press twice from the executions or transfers list/detail to delete the selected finished item from history
+- `X`: press twice from the executions or transfers sections to clear finished history for the authenticated identity
 - `o`: toggle persisted output when the detail panel is focused
 - `enter`: submit the active command or transfer form
 - `[` / `]`: switch form mode

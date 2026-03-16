@@ -55,3 +55,5 @@ The plugin reads:
 - `fetch_file` runs through `download_file`
 
 This lets standard Ansible modules operate through `cmdagentd` rather than SSH.
+
+History-management operations such as deleting one execution from history or clearing finished history are not exposed through the connection plugin. Use `cmdagentctl`, `cmdagentui`, or one of the SDKs for those actions.

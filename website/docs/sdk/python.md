@@ -62,6 +62,15 @@ items = client.list_executions()
 details = client.get_execution_with_output(execution.execution_id)
 ```
 
+## Delete history entries
+
+```python
+client.delete_execution(execution.execution_id)
+result = client.clear_history()
+```
+
+`delete_execution` removes one finished execution or transfer from history. `clear_history` deletes all finished history for the authenticated client and reports how many running items were skipped.
+
 ## Upload and download files
 
 ```python

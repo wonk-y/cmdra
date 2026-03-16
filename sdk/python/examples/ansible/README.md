@@ -11,3 +11,5 @@ mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
 
 .venv/bin/ansible-playbook -i sdk/python/examples/ansible/inventory.ini sdk/python/examples/ansible/ping.yml
 ```
+
+The Ansible connection plugin covers command execution and file transfer. History-management operations such as `delete_execution` and `clear_history` remain SDK and operator-tool features; they are not exposed as Ansible module actions.

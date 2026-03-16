@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, Sequence
 
-from .client import Client, DownloadResult, ExecutionDetails
+from .client import ClearHistoryResult, Client, DownloadResult, ExecutionDetails
 
 try:
     from robot.api.deco import keyword, library
@@ -78,6 +78,14 @@ class CmdAgentLibrary:
     @keyword
     def list_executions(self, running_only: Optional[bool] = None):
         return self._client.list_executions(running_only)
+
+    @keyword
+    def delete_execution(self, execution_id: str) -> str:
+        return self._client.delete_execution(execution_id)
+
+    @keyword
+    def clear_history(self) -> ClearHistoryResult:
+        return self._client.clear_history()
 
     @keyword
     def get_execution_with_output(self, execution_id: str, discard_after_read: bool = False) -> ExecutionDetails:

@@ -27,6 +27,8 @@ var (
 	ErrForbidden = errors.New("execution is owned by a different identity")
 	// ErrAlreadyAttached prevents multiple live attach streams from consuming one execution.
 	ErrAlreadyAttached = errors.New("execution already has an attached client")
+	// ErrRunningHistoryDelete prevents history cleanup from removing active items.
+	ErrRunningHistoryDelete = errors.New("cannot delete running execution or transfer")
 )
 
 // Kind identifies the high-level job type stored in history.
@@ -327,6 +329,60 @@ func (m *Manager) List(ownerCN string, runningOnly bool) []ExecutionView {
 		out = append(out, fromHistoryJob(job))
 	}
 	return out
+}
+
+// Delete removes one finished execution or transfer from persisted history.
+func (m *Manager) Delete(executionID, ownerCN string) error {
+	job, err := m.store.GetJobByID(executionID)
+	if err != nil {
+		if errors.Is(err, history.ErrNotFound) {
+			return ErrNotFound
+		}
+		return err
+	}
+	if job.OwnerCN != ownerCN {
+		return ErrForbidden
+	}
+	if job.State == stateToDB(StateRunning) {
+		return ErrRunningHistoryDelete
+	}
+	if err := m.store.DeleteJob(executionID); err != nil {
+		if errors.Is(err, history.ErrNotFound) {
+			return ErrNotFound
+		}
+		return err
+	}
+	m.mu.Lock()
+	delete(m.executions, executionID)
+	m.mu.Unlock()
+	_ = m.audit.Write("history.delete", fromHistoryJob(job))
+	return nil
+}
+
+// ClearHistory removes all finished executions and transfers owned by one CN.
+func (m *Manager) ClearHistory(ownerCN string) (deletedCount int, skippedRunningCount int, err error) {
+	jobs, err := m.store.ListJobs(ownerCN, false)
+	if err != nil {
+		return 0, 0, err
+	}
+	for _, job := range jobs {
+		if job.State == stateToDB(StateRunning) {
+			skippedRunningCount++
+			continue
+		}
+		if err := m.store.DeleteJob(job.ID); err != nil {
+			if errors.Is(err, history.ErrNotFound) {
+				continue
+			}
+			return deletedCount, skippedRunningCount, err
+		}
+		m.mu.Lock()
+		delete(m.executions, job.ID)
+		m.mu.Unlock()
+		deletedCount++
+		_ = m.audit.Write("history.delete", fromHistoryJob(job))
+	}
+	return deletedCount, skippedRunningCount, nil
 }
 
 // StartTransfer records the beginning of an upload/download style job.

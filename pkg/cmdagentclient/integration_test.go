@@ -298,6 +298,10 @@ func TestClientCrossIdentityAuthorization(t *testing.T) {
 	if status.Code(err) != codes.PermissionDenied {
 		t.Fatalf("expected permission denied from ReadOutput, got %v", err)
 	}
+	err = env.clientB.DeleteExecution(context.Background(), execMeta.GetExecutionId())
+	if status.Code(err) != codes.PermissionDenied {
+		t.Fatalf("expected permission denied from DeleteExecution, got %v", err)
+	}
 }
 
 func TestClientCancelExecution(t *testing.T) {
@@ -315,4 +319,78 @@ func TestClientCancelExecution(t *testing.T) {
 	if finished.GetState() != agentv1.ExecutionState_EXECUTION_STATE_CANCELED {
 		t.Fatalf("expected canceled state, got %v", finished.GetState())
 	}
+}
+
+func TestClientDeleteExecutionAndClearHistory(t *testing.T) {
+	requireUnixCommands(t)
+	env := newIntegrationEnv(t)
+
+	deletedExec, err := env.clientA.StartArgv(context.Background(), "/bin/echo", []string{"delete-me"})
+	if err != nil {
+		t.Fatalf("start argv for delete: %v", err)
+	}
+	waitForCompletion(t, env.clientA, deletedExec.GetExecutionId())
+	if err := env.clientA.DeleteExecution(context.Background(), deletedExec.GetExecutionId()); err != nil {
+		t.Fatalf("delete execution: %v", err)
+	}
+	_, err = env.clientA.GetExecution(context.Background(), deletedExec.GetExecutionId())
+	if status.Code(err) != codes.NotFound {
+		t.Fatalf("expected not found after delete, got %v", err)
+	}
+
+	finishedExec, err := env.clientA.StartArgv(context.Background(), "/bin/echo", []string{"clear-me"})
+	if err != nil {
+		t.Fatalf("start argv for clear-history: %v", err)
+	}
+	waitForCompletion(t, env.clientA, finishedExec.GetExecutionId())
+
+	localUpload := filepath.Join(env.dir, "clear-upload.txt")
+	if err := os.WriteFile(localUpload, []byte("clear-history upload\n"), 0o644); err != nil {
+		t.Fatalf("write upload source: %v", err)
+	}
+	remotePath := filepath.Join(env.dir, "clear-remote.txt")
+	uploadResp, err := env.clientA.UploadFile(context.Background(), localUpload, remotePath, UploadOptions{})
+	if err != nil {
+		t.Fatalf("upload for clear-history: %v", err)
+	}
+
+	runningExec, err := env.clientA.StartShellCommand(context.Background(), "/bin/sh", "sleep 30")
+	if err != nil {
+		t.Fatalf("start running execution: %v", err)
+	}
+
+	result, err := env.clientA.ClearHistory(context.Background())
+	if err != nil {
+		t.Fatalf("clear history: %v", err)
+	}
+	if result.DeletedCount != 2 {
+		t.Fatalf("expected deleted_count=2, got %d", result.DeletedCount)
+	}
+	if result.SkippedRunningCount != 1 {
+		t.Fatalf("expected skipped_running_count=1, got %d", result.SkippedRunningCount)
+	}
+
+	_, err = env.clientA.GetExecution(context.Background(), finishedExec.GetExecutionId())
+	if status.Code(err) != codes.NotFound {
+		t.Fatalf("expected finished execution to be deleted, got %v", err)
+	}
+	_, err = env.clientA.GetExecution(context.Background(), uploadResp.GetTransferId())
+	if status.Code(err) != codes.NotFound {
+		t.Fatalf("expected upload transfer to be deleted, got %v", err)
+	}
+	runningMeta, err := env.clientA.GetExecution(context.Background(), runningExec.GetExecutionId())
+	if err != nil {
+		t.Fatalf("get running execution after clear-history: %v", err)
+	}
+	if runningMeta.GetState() != agentv1.ExecutionState_EXECUTION_STATE_RUNNING {
+		t.Fatalf("expected running execution to remain, got %v", runningMeta.GetState())
+	}
+	if err := env.clientA.DeleteExecution(context.Background(), runningExec.GetExecutionId()); status.Code(err) != codes.FailedPrecondition {
+		t.Fatalf("expected failed precondition deleting running execution, got %v", err)
+	}
+
+	if _, err := env.clientA.CancelExecution(context.Background(), runningExec.GetExecutionId(), time.Second); err != nil {
+		t.Fatalf("cancel running execution: %v", err)
+	}
+	waitForCompletion(t, env.clientA, runningExec.GetExecutionId())
 }

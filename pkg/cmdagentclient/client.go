@@ -51,6 +51,12 @@ type ExecutionDetails struct {
 	Output    []*agentv1.OutputChunk
 }
 
+// ClearHistoryResult reports the outcome of deleting persisted history.
+type ClearHistoryResult struct {
+	DeletedCount        uint64
+	SkippedRunningCount uint64
+}
+
 // ExecutionFuture exposes the optional asynchronous execution-start helpers.
 type ExecutionFuture struct {
 	done chan struct{}
@@ -228,6 +234,24 @@ func (c *Client) ListExecutions(ctx context.Context, runningOnly *bool) ([]*agen
 		return nil, err
 	}
 	return resp.GetExecutions(), nil
+}
+
+// DeleteExecution removes one finished execution or transfer from persisted history.
+func (c *Client) DeleteExecution(ctx context.Context, executionID string) error {
+	_, err := c.api.DeleteExecution(ctx, &agentv1.DeleteExecutionRequest{ExecutionId: executionID})
+	return err
+}
+
+// ClearHistory deletes all finished executions and transfers owned by the caller.
+func (c *Client) ClearHistory(ctx context.Context) (*ClearHistoryResult, error) {
+	resp, err := c.api.ClearHistory(ctx, &agentv1.ClearHistoryRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return &ClearHistoryResult{
+		DeletedCount:        resp.GetDeletedCount(),
+		SkippedRunningCount: resp.GetSkippedRunningCount(),
+	}, nil
 }
 
 // CancelExecution requests graceful termination of a running execution.

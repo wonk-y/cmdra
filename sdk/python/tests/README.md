@@ -23,3 +23,9 @@ Run the same Python test entrypoint used by CI:
 ```bash
 ./scripts/ci-python.sh
 ```
+
+The Python suite now includes history-management coverage for:
+
+- deleting one finished execution from history
+- clearing finished history while preserving running items
+- cross-identity denial for history deletion

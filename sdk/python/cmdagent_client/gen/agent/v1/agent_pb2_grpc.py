@@ -54,6 +54,16 @@ class AgentServiceStub(object):
                 request_serializer=agent_dot_v1_dot_agent__pb2.ListExecutionsRequest.SerializeToString,
                 response_deserializer=agent_dot_v1_dot_agent__pb2.ListExecutionsResponse.FromString,
                 _registered_method=True)
+        self.DeleteExecution = channel.unary_unary(
+                '/agent.v1.AgentService/DeleteExecution',
+                request_serializer=agent_dot_v1_dot_agent__pb2.DeleteExecutionRequest.SerializeToString,
+                response_deserializer=agent_dot_v1_dot_agent__pb2.DeleteExecutionResponse.FromString,
+                _registered_method=True)
+        self.ClearHistory = channel.unary_unary(
+                '/agent.v1.AgentService/ClearHistory',
+                request_serializer=agent_dot_v1_dot_agent__pb2.ClearHistoryRequest.SerializeToString,
+                response_deserializer=agent_dot_v1_dot_agent__pb2.ClearHistoryResponse.FromString,
+                _registered_method=True)
         self.CancelExecution = channel.unary_unary(
                 '/agent.v1.AgentService/CancelExecution',
                 request_serializer=agent_dot_v1_dot_agent__pb2.CancelExecutionRequest.SerializeToString,
@@ -108,6 +118,18 @@ class AgentServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def ListExecutions(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteExecution(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ClearHistory(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -171,6 +193,16 @@ def add_AgentServiceServicer_to_server(servicer, server):
                     servicer.ListExecutions,
                     request_deserializer=agent_dot_v1_dot_agent__pb2.ListExecutionsRequest.FromString,
                     response_serializer=agent_dot_v1_dot_agent__pb2.ListExecutionsResponse.SerializeToString,
+            ),
+            'DeleteExecution': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteExecution,
+                    request_deserializer=agent_dot_v1_dot_agent__pb2.DeleteExecutionRequest.FromString,
+                    response_serializer=agent_dot_v1_dot_agent__pb2.DeleteExecutionResponse.SerializeToString,
+            ),
+            'ClearHistory': grpc.unary_unary_rpc_method_handler(
+                    servicer.ClearHistory,
+                    request_deserializer=agent_dot_v1_dot_agent__pb2.ClearHistoryRequest.FromString,
+                    response_serializer=agent_dot_v1_dot_agent__pb2.ClearHistoryResponse.SerializeToString,
             ),
             'CancelExecution': grpc.unary_unary_rpc_method_handler(
                     servicer.CancelExecution,
@@ -311,6 +343,60 @@ class AgentService(object):
             '/agent.v1.AgentService/ListExecutions',
             agent_dot_v1_dot_agent__pb2.ListExecutionsRequest.SerializeToString,
             agent_dot_v1_dot_agent__pb2.ListExecutionsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteExecution(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/agent.v1.AgentService/DeleteExecution',
+            agent_dot_v1_dot_agent__pb2.DeleteExecutionRequest.SerializeToString,
+            agent_dot_v1_dot_agent__pb2.DeleteExecutionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ClearHistory(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/agent.v1.AgentService/ClearHistory',
+            agent_dot_v1_dot_agent__pb2.ClearHistoryRequest.SerializeToString,
+            agent_dot_v1_dot_agent__pb2.ClearHistoryResponse.FromString,
             options,
             channel_credentials,
             insecure,

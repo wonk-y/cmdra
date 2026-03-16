@@ -14,3 +14,8 @@ The `sdk/go/` tree contains example programs that exercise the public client API
 - `sdk/go/examples/download_archive`
 
 Run them from the repository root. See `sdk/go/examples/README.md` for exact commands.
+
+The Go SDK also exposes history-management helpers for:
+
+- deleting one finished execution or transfer with `DeleteExecution`
+- clearing finished history for the authenticated identity with `ClearHistory`

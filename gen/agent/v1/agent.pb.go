@@ -947,6 +947,182 @@ func (x *ListExecutionsResponse) GetExecutions() []*Execution {
 	return nil
 }
 
+type DeleteExecutionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ExecutionId   string                 `protobuf:"bytes,1,opt,name=execution_id,json=executionId,proto3" json:"execution_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteExecutionRequest) Reset() {
+	*x = DeleteExecutionRequest{}
+	mi := &file_agent_v1_agent_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteExecutionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteExecutionRequest) ProtoMessage() {}
+
+func (x *DeleteExecutionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_v1_agent_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteExecutionRequest.ProtoReflect.Descriptor instead.
+func (*DeleteExecutionRequest) Descriptor() ([]byte, []int) {
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *DeleteExecutionRequest) GetExecutionId() string {
+	if x != nil {
+		return x.ExecutionId
+	}
+	return ""
+}
+
+type DeleteExecutionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ExecutionId   string                 `protobuf:"bytes,1,opt,name=execution_id,json=executionId,proto3" json:"execution_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteExecutionResponse) Reset() {
+	*x = DeleteExecutionResponse{}
+	mi := &file_agent_v1_agent_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteExecutionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteExecutionResponse) ProtoMessage() {}
+
+func (x *DeleteExecutionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_v1_agent_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteExecutionResponse.ProtoReflect.Descriptor instead.
+func (*DeleteExecutionResponse) Descriptor() ([]byte, []int) {
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteExecutionResponse) GetExecutionId() string {
+	if x != nil {
+		return x.ExecutionId
+	}
+	return ""
+}
+
+type ClearHistoryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearHistoryRequest) Reset() {
+	*x = ClearHistoryRequest{}
+	mi := &file_agent_v1_agent_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearHistoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearHistoryRequest) ProtoMessage() {}
+
+func (x *ClearHistoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_v1_agent_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearHistoryRequest.ProtoReflect.Descriptor instead.
+func (*ClearHistoryRequest) Descriptor() ([]byte, []int) {
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{13}
+}
+
+type ClearHistoryResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	DeletedCount        uint64                 `protobuf:"varint,1,opt,name=deleted_count,json=deletedCount,proto3" json:"deleted_count,omitempty"`
+	SkippedRunningCount uint64                 `protobuf:"varint,2,opt,name=skipped_running_count,json=skippedRunningCount,proto3" json:"skipped_running_count,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *ClearHistoryResponse) Reset() {
+	*x = ClearHistoryResponse{}
+	mi := &file_agent_v1_agent_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearHistoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearHistoryResponse) ProtoMessage() {}
+
+func (x *ClearHistoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_agent_v1_agent_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearHistoryResponse.ProtoReflect.Descriptor instead.
+func (*ClearHistoryResponse) Descriptor() ([]byte, []int) {
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ClearHistoryResponse) GetDeletedCount() uint64 {
+	if x != nil {
+		return x.DeletedCount
+	}
+	return 0
+}
+
+func (x *ClearHistoryResponse) GetSkippedRunningCount() uint64 {
+	if x != nil {
+		return x.SkippedRunningCount
+	}
+	return 0
+}
+
 // The server performs graceful termination and force kill after grace_period_seconds.
 type CancelExecutionRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
@@ -958,7 +1134,7 @@ type CancelExecutionRequest struct {
 
 func (x *CancelExecutionRequest) Reset() {
 	*x = CancelExecutionRequest{}
-	mi := &file_agent_v1_agent_proto_msgTypes[11]
+	mi := &file_agent_v1_agent_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -970,7 +1146,7 @@ func (x *CancelExecutionRequest) String() string {
 func (*CancelExecutionRequest) ProtoMessage() {}
 
 func (x *CancelExecutionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[11]
+	mi := &file_agent_v1_agent_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -983,7 +1159,7 @@ func (x *CancelExecutionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelExecutionRequest.ProtoReflect.Descriptor instead.
 func (*CancelExecutionRequest) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{11}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CancelExecutionRequest) GetExecutionId() string {
@@ -1009,7 +1185,7 @@ type CancelExecutionResponse struct {
 
 func (x *CancelExecutionResponse) Reset() {
 	*x = CancelExecutionResponse{}
-	mi := &file_agent_v1_agent_proto_msgTypes[12]
+	mi := &file_agent_v1_agent_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1021,7 +1197,7 @@ func (x *CancelExecutionResponse) String() string {
 func (*CancelExecutionResponse) ProtoMessage() {}
 
 func (x *CancelExecutionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[12]
+	mi := &file_agent_v1_agent_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1034,7 +1210,7 @@ func (x *CancelExecutionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelExecutionResponse.ProtoReflect.Descriptor instead.
 func (*CancelExecutionResponse) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{12}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CancelExecutionResponse) GetExecution() *Execution {
@@ -1055,7 +1231,7 @@ type ReadOutputRequest struct {
 
 func (x *ReadOutputRequest) Reset() {
 	*x = ReadOutputRequest{}
-	mi := &file_agent_v1_agent_proto_msgTypes[13]
+	mi := &file_agent_v1_agent_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1067,7 +1243,7 @@ func (x *ReadOutputRequest) String() string {
 func (*ReadOutputRequest) ProtoMessage() {}
 
 func (x *ReadOutputRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[13]
+	mi := &file_agent_v1_agent_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1080,7 +1256,7 @@ func (x *ReadOutputRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadOutputRequest.ProtoReflect.Descriptor instead.
 func (*ReadOutputRequest) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{13}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ReadOutputRequest) GetExecutionId() string {
@@ -1119,7 +1295,7 @@ type OutputChunk struct {
 
 func (x *OutputChunk) Reset() {
 	*x = OutputChunk{}
-	mi := &file_agent_v1_agent_proto_msgTypes[14]
+	mi := &file_agent_v1_agent_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1131,7 +1307,7 @@ func (x *OutputChunk) String() string {
 func (*OutputChunk) ProtoMessage() {}
 
 func (x *OutputChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[14]
+	mi := &file_agent_v1_agent_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1144,7 +1320,7 @@ func (x *OutputChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OutputChunk.ProtoReflect.Descriptor instead.
 func (*OutputChunk) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{14}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *OutputChunk) GetExecutionId() string {
@@ -1207,7 +1383,7 @@ type AttachStart struct {
 
 func (x *AttachStart) Reset() {
 	*x = AttachStart{}
-	mi := &file_agent_v1_agent_proto_msgTypes[15]
+	mi := &file_agent_v1_agent_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1219,7 +1395,7 @@ func (x *AttachStart) String() string {
 func (*AttachStart) ProtoMessage() {}
 
 func (x *AttachStart) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[15]
+	mi := &file_agent_v1_agent_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1232,7 +1408,7 @@ func (x *AttachStart) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachStart.ProtoReflect.Descriptor instead.
 func (*AttachStart) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{15}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AttachStart) GetExecutionId() string {
@@ -1266,7 +1442,7 @@ type StdinChunk struct {
 
 func (x *StdinChunk) Reset() {
 	*x = StdinChunk{}
-	mi := &file_agent_v1_agent_proto_msgTypes[16]
+	mi := &file_agent_v1_agent_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1278,7 +1454,7 @@ func (x *StdinChunk) String() string {
 func (*StdinChunk) ProtoMessage() {}
 
 func (x *StdinChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[16]
+	mi := &file_agent_v1_agent_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1291,7 +1467,7 @@ func (x *StdinChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StdinChunk.ProtoReflect.Descriptor instead.
 func (*StdinChunk) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{16}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *StdinChunk) GetData() []byte {
@@ -1317,7 +1493,7 @@ type AttachControl struct {
 
 func (x *AttachControl) Reset() {
 	*x = AttachControl{}
-	mi := &file_agent_v1_agent_proto_msgTypes[17]
+	mi := &file_agent_v1_agent_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1329,7 +1505,7 @@ func (x *AttachControl) String() string {
 func (*AttachControl) ProtoMessage() {}
 
 func (x *AttachControl) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[17]
+	mi := &file_agent_v1_agent_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1342,7 +1518,7 @@ func (x *AttachControl) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachControl.ProtoReflect.Descriptor instead.
 func (*AttachControl) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{17}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *AttachControl) GetCancelExecution() bool {
@@ -1366,7 +1542,7 @@ type AttachRequest struct {
 
 func (x *AttachRequest) Reset() {
 	*x = AttachRequest{}
-	mi := &file_agent_v1_agent_proto_msgTypes[18]
+	mi := &file_agent_v1_agent_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1378,7 +1554,7 @@ func (x *AttachRequest) String() string {
 func (*AttachRequest) ProtoMessage() {}
 
 func (x *AttachRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[18]
+	mi := &file_agent_v1_agent_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1391,7 +1567,7 @@ func (x *AttachRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachRequest.ProtoReflect.Descriptor instead.
 func (*AttachRequest) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{18}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *AttachRequest) GetPayload() isAttachRequest_Payload {
@@ -1459,7 +1635,7 @@ type AttachAck struct {
 
 func (x *AttachAck) Reset() {
 	*x = AttachAck{}
-	mi := &file_agent_v1_agent_proto_msgTypes[19]
+	mi := &file_agent_v1_agent_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1471,7 +1647,7 @@ func (x *AttachAck) String() string {
 func (*AttachAck) ProtoMessage() {}
 
 func (x *AttachAck) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[19]
+	mi := &file_agent_v1_agent_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1484,7 +1660,7 @@ func (x *AttachAck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachAck.ProtoReflect.Descriptor instead.
 func (*AttachAck) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{19}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *AttachAck) GetExecution() *Execution {
@@ -1503,7 +1679,7 @@ type ExitEvent struct {
 
 func (x *ExitEvent) Reset() {
 	*x = ExitEvent{}
-	mi := &file_agent_v1_agent_proto_msgTypes[20]
+	mi := &file_agent_v1_agent_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1515,7 +1691,7 @@ func (x *ExitEvent) String() string {
 func (*ExitEvent) ProtoMessage() {}
 
 func (x *ExitEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[20]
+	mi := &file_agent_v1_agent_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1528,7 +1704,7 @@ func (x *ExitEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExitEvent.ProtoReflect.Descriptor instead.
 func (*ExitEvent) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{20}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ExitEvent) GetExecution() *Execution {
@@ -1547,7 +1723,7 @@ type AttachError struct {
 
 func (x *AttachError) Reset() {
 	*x = AttachError{}
-	mi := &file_agent_v1_agent_proto_msgTypes[21]
+	mi := &file_agent_v1_agent_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1559,7 +1735,7 @@ func (x *AttachError) String() string {
 func (*AttachError) ProtoMessage() {}
 
 func (x *AttachError) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[21]
+	mi := &file_agent_v1_agent_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1572,7 +1748,7 @@ func (x *AttachError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachError.ProtoReflect.Descriptor instead.
 func (*AttachError) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{21}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AttachError) GetMessage() string {
@@ -1597,7 +1773,7 @@ type AttachEvent struct {
 
 func (x *AttachEvent) Reset() {
 	*x = AttachEvent{}
-	mi := &file_agent_v1_agent_proto_msgTypes[22]
+	mi := &file_agent_v1_agent_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1609,7 +1785,7 @@ func (x *AttachEvent) String() string {
 func (*AttachEvent) ProtoMessage() {}
 
 func (x *AttachEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[22]
+	mi := &file_agent_v1_agent_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1622,7 +1798,7 @@ func (x *AttachEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachEvent.ProtoReflect.Descriptor instead.
 func (*AttachEvent) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{22}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AttachEvent) GetPayload() isAttachEvent_Payload {
@@ -1708,7 +1884,7 @@ type UploadFileMetadata struct {
 
 func (x *UploadFileMetadata) Reset() {
 	*x = UploadFileMetadata{}
-	mi := &file_agent_v1_agent_proto_msgTypes[23]
+	mi := &file_agent_v1_agent_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1720,7 +1896,7 @@ func (x *UploadFileMetadata) String() string {
 func (*UploadFileMetadata) ProtoMessage() {}
 
 func (x *UploadFileMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[23]
+	mi := &file_agent_v1_agent_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1733,7 +1909,7 @@ func (x *UploadFileMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadFileMetadata.ProtoReflect.Descriptor instead.
 func (*UploadFileMetadata) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{23}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UploadFileMetadata) GetPath() string {
@@ -1777,7 +1953,7 @@ type UploadFileRequest struct {
 
 func (x *UploadFileRequest) Reset() {
 	*x = UploadFileRequest{}
-	mi := &file_agent_v1_agent_proto_msgTypes[24]
+	mi := &file_agent_v1_agent_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1789,7 +1965,7 @@ func (x *UploadFileRequest) String() string {
 func (*UploadFileRequest) ProtoMessage() {}
 
 func (x *UploadFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[24]
+	mi := &file_agent_v1_agent_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1802,7 +1978,7 @@ func (x *UploadFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadFileRequest.ProtoReflect.Descriptor instead.
 func (*UploadFileRequest) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{24}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *UploadFileRequest) GetPayload() isUploadFileRequest_Payload {
@@ -1858,7 +2034,7 @@ type UploadFileResponse struct {
 
 func (x *UploadFileResponse) Reset() {
 	*x = UploadFileResponse{}
-	mi := &file_agent_v1_agent_proto_msgTypes[25]
+	mi := &file_agent_v1_agent_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1870,7 +2046,7 @@ func (x *UploadFileResponse) String() string {
 func (*UploadFileResponse) ProtoMessage() {}
 
 func (x *UploadFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[25]
+	mi := &file_agent_v1_agent_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1883,7 +2059,7 @@ func (x *UploadFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadFileResponse.ProtoReflect.Descriptor instead.
 func (*UploadFileResponse) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{25}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *UploadFileResponse) GetPath() string {
@@ -1925,7 +2101,7 @@ type DownloadFileRequest struct {
 
 func (x *DownloadFileRequest) Reset() {
 	*x = DownloadFileRequest{}
-	mi := &file_agent_v1_agent_proto_msgTypes[26]
+	mi := &file_agent_v1_agent_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1937,7 +2113,7 @@ func (x *DownloadFileRequest) String() string {
 func (*DownloadFileRequest) ProtoMessage() {}
 
 func (x *DownloadFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[26]
+	mi := &file_agent_v1_agent_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1950,7 +2126,7 @@ func (x *DownloadFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadFileRequest.ProtoReflect.Descriptor instead.
 func (*DownloadFileRequest) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{26}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *DownloadFileRequest) GetPath() string {
@@ -1986,7 +2162,7 @@ type DownloadArchiveRequest struct {
 
 func (x *DownloadArchiveRequest) Reset() {
 	*x = DownloadArchiveRequest{}
-	mi := &file_agent_v1_agent_proto_msgTypes[27]
+	mi := &file_agent_v1_agent_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1998,7 +2174,7 @@ func (x *DownloadArchiveRequest) String() string {
 func (*DownloadArchiveRequest) ProtoMessage() {}
 
 func (x *DownloadArchiveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[27]
+	mi := &file_agent_v1_agent_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2011,7 +2187,7 @@ func (x *DownloadArchiveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadArchiveRequest.ProtoReflect.Descriptor instead.
 func (*DownloadArchiveRequest) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{27}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *DownloadArchiveRequest) GetPaths() []string {
@@ -2054,7 +2230,7 @@ type FileChunk struct {
 
 func (x *FileChunk) Reset() {
 	*x = FileChunk{}
-	mi := &file_agent_v1_agent_proto_msgTypes[28]
+	mi := &file_agent_v1_agent_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2066,7 +2242,7 @@ func (x *FileChunk) String() string {
 func (*FileChunk) ProtoMessage() {}
 
 func (x *FileChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_agent_v1_agent_proto_msgTypes[28]
+	mi := &file_agent_v1_agent_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2079,7 +2255,7 @@ func (x *FileChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileChunk.ProtoReflect.Descriptor instead.
 func (*FileChunk) Descriptor() ([]byte, []int) {
-	return file_agent_v1_agent_proto_rawDescGZIP(), []int{28}
+	return file_agent_v1_agent_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *FileChunk) GetData() []byte {
@@ -2168,7 +2344,15 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x16ListExecutionsResponse\x123\n" +
 	"\n" +
 	"executions\x18\x01 \x03(\v2\x13.agent.v1.ExecutionR\n" +
-	"executions\"m\n" +
+	"executions\";\n" +
+	"\x16DeleteExecutionRequest\x12!\n" +
+	"\fexecution_id\x18\x01 \x01(\tR\vexecutionId\"<\n" +
+	"\x17DeleteExecutionResponse\x12!\n" +
+	"\fexecution_id\x18\x01 \x01(\tR\vexecutionId\"\x15\n" +
+	"\x13ClearHistoryRequest\"o\n" +
+	"\x14ClearHistoryResponse\x12#\n" +
+	"\rdeleted_count\x18\x01 \x01(\x04R\fdeletedCount\x122\n" +
+	"\x15skipped_running_count\x18\x02 \x01(\x04R\x13skippedRunningCount\"m\n" +
 	"\x16CancelExecutionRequest\x12!\n" +
 	"\fexecution_id\x18\x01 \x01(\tR\vexecutionId\x120\n" +
 	"\x14grace_period_seconds\x18\x02 \x01(\rR\x12gracePeriodSeconds\"L\n" +
@@ -2270,13 +2454,15 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x1fEXECUTION_STATE_FAILED_TO_START\x10\x04*G\n" +
 	"\rArchiveFormat\x12\x1e\n" +
 	"\x1aARCHIVE_FORMAT_UNSPECIFIED\x10\x00\x12\x16\n" +
-	"\x12ARCHIVE_FORMAT_ZIP\x10\x012\x81\x06\n" +
+	"\x12ARCHIVE_FORMAT_ZIP\x10\x012\xa8\a\n" +
 	"\fAgentService\x12M\n" +
 	"\fStartCommand\x12\x1d.agent.v1.StartCommandRequest\x1a\x1e.agent.v1.StartCommandResponse\x12G\n" +
 	"\n" +
 	"StartShell\x12\x1b.agent.v1.StartShellRequest\x1a\x1c.agent.v1.StartShellResponse\x12M\n" +
 	"\fGetExecution\x12\x1d.agent.v1.GetExecutionRequest\x1a\x1e.agent.v1.GetExecutionResponse\x12S\n" +
 	"\x0eListExecutions\x12\x1f.agent.v1.ListExecutionsRequest\x1a .agent.v1.ListExecutionsResponse\x12V\n" +
+	"\x0fDeleteExecution\x12 .agent.v1.DeleteExecutionRequest\x1a!.agent.v1.DeleteExecutionResponse\x12M\n" +
+	"\fClearHistory\x12\x1d.agent.v1.ClearHistoryRequest\x1a\x1e.agent.v1.ClearHistoryResponse\x12V\n" +
 	"\x0fCancelExecution\x12 .agent.v1.CancelExecutionRequest\x1a!.agent.v1.CancelExecutionResponse\x12B\n" +
 	"\n" +
 	"ReadOutput\x12\x1b.agent.v1.ReadOutputRequest\x1a\x15.agent.v1.OutputChunk0\x01\x12<\n" +
@@ -2299,7 +2485,7 @@ func file_agent_v1_agent_proto_rawDescGZIP() []byte {
 }
 
 var file_agent_v1_agent_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_agent_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_agent_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_agent_v1_agent_proto_goTypes = []any{
 	(OutputSource)(0),               // 0: agent.v1.OutputSource
 	(ExecutionKind)(0),              // 1: agent.v1.ExecutionKind
@@ -2316,25 +2502,29 @@ var file_agent_v1_agent_proto_goTypes = []any{
 	(*GetExecutionResponse)(nil),    // 12: agent.v1.GetExecutionResponse
 	(*ListExecutionsRequest)(nil),   // 13: agent.v1.ListExecutionsRequest
 	(*ListExecutionsResponse)(nil),  // 14: agent.v1.ListExecutionsResponse
-	(*CancelExecutionRequest)(nil),  // 15: agent.v1.CancelExecutionRequest
-	(*CancelExecutionResponse)(nil), // 16: agent.v1.CancelExecutionResponse
-	(*ReadOutputRequest)(nil),       // 17: agent.v1.ReadOutputRequest
-	(*OutputChunk)(nil),             // 18: agent.v1.OutputChunk
-	(*AttachStart)(nil),             // 19: agent.v1.AttachStart
-	(*StdinChunk)(nil),              // 20: agent.v1.StdinChunk
-	(*AttachControl)(nil),           // 21: agent.v1.AttachControl
-	(*AttachRequest)(nil),           // 22: agent.v1.AttachRequest
-	(*AttachAck)(nil),               // 23: agent.v1.AttachAck
-	(*ExitEvent)(nil),               // 24: agent.v1.ExitEvent
-	(*AttachError)(nil),             // 25: agent.v1.AttachError
-	(*AttachEvent)(nil),             // 26: agent.v1.AttachEvent
-	(*UploadFileMetadata)(nil),      // 27: agent.v1.UploadFileMetadata
-	(*UploadFileRequest)(nil),       // 28: agent.v1.UploadFileRequest
-	(*UploadFileResponse)(nil),      // 29: agent.v1.UploadFileResponse
-	(*DownloadFileRequest)(nil),     // 30: agent.v1.DownloadFileRequest
-	(*DownloadArchiveRequest)(nil),  // 31: agent.v1.DownloadArchiveRequest
-	(*FileChunk)(nil),               // 32: agent.v1.FileChunk
-	(*timestamppb.Timestamp)(nil),   // 33: google.protobuf.Timestamp
+	(*DeleteExecutionRequest)(nil),  // 15: agent.v1.DeleteExecutionRequest
+	(*DeleteExecutionResponse)(nil), // 16: agent.v1.DeleteExecutionResponse
+	(*ClearHistoryRequest)(nil),     // 17: agent.v1.ClearHistoryRequest
+	(*ClearHistoryResponse)(nil),    // 18: agent.v1.ClearHistoryResponse
+	(*CancelExecutionRequest)(nil),  // 19: agent.v1.CancelExecutionRequest
+	(*CancelExecutionResponse)(nil), // 20: agent.v1.CancelExecutionResponse
+	(*ReadOutputRequest)(nil),       // 21: agent.v1.ReadOutputRequest
+	(*OutputChunk)(nil),             // 22: agent.v1.OutputChunk
+	(*AttachStart)(nil),             // 23: agent.v1.AttachStart
+	(*StdinChunk)(nil),              // 24: agent.v1.StdinChunk
+	(*AttachControl)(nil),           // 25: agent.v1.AttachControl
+	(*AttachRequest)(nil),           // 26: agent.v1.AttachRequest
+	(*AttachAck)(nil),               // 27: agent.v1.AttachAck
+	(*ExitEvent)(nil),               // 28: agent.v1.ExitEvent
+	(*AttachError)(nil),             // 29: agent.v1.AttachError
+	(*AttachEvent)(nil),             // 30: agent.v1.AttachEvent
+	(*UploadFileMetadata)(nil),      // 31: agent.v1.UploadFileMetadata
+	(*UploadFileRequest)(nil),       // 32: agent.v1.UploadFileRequest
+	(*UploadFileResponse)(nil),      // 33: agent.v1.UploadFileResponse
+	(*DownloadFileRequest)(nil),     // 34: agent.v1.DownloadFileRequest
+	(*DownloadArchiveRequest)(nil),  // 35: agent.v1.DownloadArchiveRequest
+	(*FileChunk)(nil),               // 36: agent.v1.FileChunk
+	(*timestamppb.Timestamp)(nil),   // 37: google.protobuf.Timestamp
 }
 var file_agent_v1_agent_proto_depIdxs = []int32{
 	4,  // 0: agent.v1.StartCommandRequest.argv:type_name -> agent.v1.ArgvCommand
@@ -2343,46 +2533,50 @@ var file_agent_v1_agent_proto_depIdxs = []int32{
 	10, // 3: agent.v1.StartShellResponse.execution:type_name -> agent.v1.Execution
 	1,  // 4: agent.v1.Execution.kind:type_name -> agent.v1.ExecutionKind
 	2,  // 5: agent.v1.Execution.state:type_name -> agent.v1.ExecutionState
-	33, // 6: agent.v1.Execution.started_at:type_name -> google.protobuf.Timestamp
-	33, // 7: agent.v1.Execution.ended_at:type_name -> google.protobuf.Timestamp
+	37, // 6: agent.v1.Execution.started_at:type_name -> google.protobuf.Timestamp
+	37, // 7: agent.v1.Execution.ended_at:type_name -> google.protobuf.Timestamp
 	10, // 8: agent.v1.GetExecutionResponse.execution:type_name -> agent.v1.Execution
 	10, // 9: agent.v1.ListExecutionsResponse.executions:type_name -> agent.v1.Execution
 	10, // 10: agent.v1.CancelExecutionResponse.execution:type_name -> agent.v1.Execution
 	0,  // 11: agent.v1.OutputChunk.source:type_name -> agent.v1.OutputSource
-	33, // 12: agent.v1.OutputChunk.timestamp:type_name -> google.protobuf.Timestamp
-	19, // 13: agent.v1.AttachRequest.start:type_name -> agent.v1.AttachStart
-	20, // 14: agent.v1.AttachRequest.stdin:type_name -> agent.v1.StdinChunk
-	21, // 15: agent.v1.AttachRequest.control:type_name -> agent.v1.AttachControl
+	37, // 12: agent.v1.OutputChunk.timestamp:type_name -> google.protobuf.Timestamp
+	23, // 13: agent.v1.AttachRequest.start:type_name -> agent.v1.AttachStart
+	24, // 14: agent.v1.AttachRequest.stdin:type_name -> agent.v1.StdinChunk
+	25, // 15: agent.v1.AttachRequest.control:type_name -> agent.v1.AttachControl
 	10, // 16: agent.v1.AttachAck.execution:type_name -> agent.v1.Execution
 	10, // 17: agent.v1.ExitEvent.execution:type_name -> agent.v1.Execution
-	23, // 18: agent.v1.AttachEvent.ack:type_name -> agent.v1.AttachAck
-	18, // 19: agent.v1.AttachEvent.output:type_name -> agent.v1.OutputChunk
-	24, // 20: agent.v1.AttachEvent.exit:type_name -> agent.v1.ExitEvent
-	25, // 21: agent.v1.AttachEvent.error:type_name -> agent.v1.AttachError
-	27, // 22: agent.v1.UploadFileRequest.metadata:type_name -> agent.v1.UploadFileMetadata
+	27, // 18: agent.v1.AttachEvent.ack:type_name -> agent.v1.AttachAck
+	22, // 19: agent.v1.AttachEvent.output:type_name -> agent.v1.OutputChunk
+	28, // 20: agent.v1.AttachEvent.exit:type_name -> agent.v1.ExitEvent
+	29, // 21: agent.v1.AttachEvent.error:type_name -> agent.v1.AttachError
+	31, // 22: agent.v1.UploadFileRequest.metadata:type_name -> agent.v1.UploadFileMetadata
 	3,  // 23: agent.v1.DownloadArchiveRequest.format:type_name -> agent.v1.ArchiveFormat
 	6,  // 24: agent.v1.AgentService.StartCommand:input_type -> agent.v1.StartCommandRequest
 	8,  // 25: agent.v1.AgentService.StartShell:input_type -> agent.v1.StartShellRequest
 	11, // 26: agent.v1.AgentService.GetExecution:input_type -> agent.v1.GetExecutionRequest
 	13, // 27: agent.v1.AgentService.ListExecutions:input_type -> agent.v1.ListExecutionsRequest
-	15, // 28: agent.v1.AgentService.CancelExecution:input_type -> agent.v1.CancelExecutionRequest
-	17, // 29: agent.v1.AgentService.ReadOutput:input_type -> agent.v1.ReadOutputRequest
-	22, // 30: agent.v1.AgentService.Attach:input_type -> agent.v1.AttachRequest
-	28, // 31: agent.v1.AgentService.UploadFile:input_type -> agent.v1.UploadFileRequest
-	30, // 32: agent.v1.AgentService.DownloadFile:input_type -> agent.v1.DownloadFileRequest
-	31, // 33: agent.v1.AgentService.DownloadArchive:input_type -> agent.v1.DownloadArchiveRequest
-	7,  // 34: agent.v1.AgentService.StartCommand:output_type -> agent.v1.StartCommandResponse
-	9,  // 35: agent.v1.AgentService.StartShell:output_type -> agent.v1.StartShellResponse
-	12, // 36: agent.v1.AgentService.GetExecution:output_type -> agent.v1.GetExecutionResponse
-	14, // 37: agent.v1.AgentService.ListExecutions:output_type -> agent.v1.ListExecutionsResponse
-	16, // 38: agent.v1.AgentService.CancelExecution:output_type -> agent.v1.CancelExecutionResponse
-	18, // 39: agent.v1.AgentService.ReadOutput:output_type -> agent.v1.OutputChunk
-	26, // 40: agent.v1.AgentService.Attach:output_type -> agent.v1.AttachEvent
-	29, // 41: agent.v1.AgentService.UploadFile:output_type -> agent.v1.UploadFileResponse
-	32, // 42: agent.v1.AgentService.DownloadFile:output_type -> agent.v1.FileChunk
-	32, // 43: agent.v1.AgentService.DownloadArchive:output_type -> agent.v1.FileChunk
-	34, // [34:44] is the sub-list for method output_type
-	24, // [24:34] is the sub-list for method input_type
+	15, // 28: agent.v1.AgentService.DeleteExecution:input_type -> agent.v1.DeleteExecutionRequest
+	17, // 29: agent.v1.AgentService.ClearHistory:input_type -> agent.v1.ClearHistoryRequest
+	19, // 30: agent.v1.AgentService.CancelExecution:input_type -> agent.v1.CancelExecutionRequest
+	21, // 31: agent.v1.AgentService.ReadOutput:input_type -> agent.v1.ReadOutputRequest
+	26, // 32: agent.v1.AgentService.Attach:input_type -> agent.v1.AttachRequest
+	32, // 33: agent.v1.AgentService.UploadFile:input_type -> agent.v1.UploadFileRequest
+	34, // 34: agent.v1.AgentService.DownloadFile:input_type -> agent.v1.DownloadFileRequest
+	35, // 35: agent.v1.AgentService.DownloadArchive:input_type -> agent.v1.DownloadArchiveRequest
+	7,  // 36: agent.v1.AgentService.StartCommand:output_type -> agent.v1.StartCommandResponse
+	9,  // 37: agent.v1.AgentService.StartShell:output_type -> agent.v1.StartShellResponse
+	12, // 38: agent.v1.AgentService.GetExecution:output_type -> agent.v1.GetExecutionResponse
+	14, // 39: agent.v1.AgentService.ListExecutions:output_type -> agent.v1.ListExecutionsResponse
+	16, // 40: agent.v1.AgentService.DeleteExecution:output_type -> agent.v1.DeleteExecutionResponse
+	18, // 41: agent.v1.AgentService.ClearHistory:output_type -> agent.v1.ClearHistoryResponse
+	20, // 42: agent.v1.AgentService.CancelExecution:output_type -> agent.v1.CancelExecutionResponse
+	22, // 43: agent.v1.AgentService.ReadOutput:output_type -> agent.v1.OutputChunk
+	30, // 44: agent.v1.AgentService.Attach:output_type -> agent.v1.AttachEvent
+	33, // 45: agent.v1.AgentService.UploadFile:output_type -> agent.v1.UploadFileResponse
+	36, // 46: agent.v1.AgentService.DownloadFile:output_type -> agent.v1.FileChunk
+	36, // 47: agent.v1.AgentService.DownloadArchive:output_type -> agent.v1.FileChunk
+	36, // [36:48] is the sub-list for method output_type
+	24, // [24:36] is the sub-list for method input_type
 	24, // [24:24] is the sub-list for extension type_name
 	24, // [24:24] is the sub-list for extension extendee
 	0,  // [0:24] is the sub-list for field type_name
@@ -2398,31 +2592,31 @@ func file_agent_v1_agent_proto_init() {
 		(*StartCommandRequest_Shell)(nil),
 	}
 	file_agent_v1_agent_proto_msgTypes[9].OneofWrappers = []any{}
-	file_agent_v1_agent_proto_msgTypes[18].OneofWrappers = []any{
+	file_agent_v1_agent_proto_msgTypes[22].OneofWrappers = []any{
 		(*AttachRequest_Start)(nil),
 		(*AttachRequest_Stdin)(nil),
 		(*AttachRequest_Control)(nil),
 	}
-	file_agent_v1_agent_proto_msgTypes[22].OneofWrappers = []any{
+	file_agent_v1_agent_proto_msgTypes[26].OneofWrappers = []any{
 		(*AttachEvent_Ack)(nil),
 		(*AttachEvent_Output)(nil),
 		(*AttachEvent_Exit)(nil),
 		(*AttachEvent_Error)(nil),
 	}
-	file_agent_v1_agent_proto_msgTypes[23].OneofWrappers = []any{}
-	file_agent_v1_agent_proto_msgTypes[24].OneofWrappers = []any{
+	file_agent_v1_agent_proto_msgTypes[27].OneofWrappers = []any{}
+	file_agent_v1_agent_proto_msgTypes[28].OneofWrappers = []any{
 		(*UploadFileRequest_Metadata)(nil),
 		(*UploadFileRequest_Chunk)(nil),
 	}
-	file_agent_v1_agent_proto_msgTypes[26].OneofWrappers = []any{}
-	file_agent_v1_agent_proto_msgTypes[27].OneofWrappers = []any{}
+	file_agent_v1_agent_proto_msgTypes[30].OneofWrappers = []any{}
+	file_agent_v1_agent_proto_msgTypes[31].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_agent_v1_agent_proto_rawDesc), len(file_agent_v1_agent_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   29,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

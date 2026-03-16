@@ -101,6 +101,21 @@ message ListExecutionsResponse {
   repeated Execution executions = 1;
 }
 
+message DeleteExecutionRequest {
+  string execution_id = 1;
+}
+
+message DeleteExecutionResponse {
+  string execution_id = 1;
+}
+
+message ClearHistoryRequest {}
+
+message ClearHistoryResponse {
+  uint64 deleted_count = 1;
+  uint64 skipped_running_count = 2;
+}
+
 // The server performs graceful termination and force kill after grace_period_seconds.
 message CancelExecutionRequest {
   string execution_id = 1;
@@ -222,6 +237,8 @@ service AgentService {
   rpc StartShell(StartShellRequest) returns (StartShellResponse);
   rpc GetExecution(GetExecutionRequest) returns (GetExecutionResponse);
   rpc ListExecutions(ListExecutionsRequest) returns (ListExecutionsResponse);
+  rpc DeleteExecution(DeleteExecutionRequest) returns (DeleteExecutionResponse);
+  rpc ClearHistory(ClearHistoryRequest) returns (ClearHistoryResponse);
   rpc CancelExecution(CancelExecutionRequest) returns (CancelExecutionResponse);
   rpc ReadOutput(ReadOutputRequest) returns (stream OutputChunk);
   rpc Attach(stream AttachRequest) returns (stream AttachEvent);

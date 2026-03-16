@@ -24,3 +24,10 @@ python3 sdk/python/examples/upload_file.py --local ./README.md --remote /tmp/REA
 python3 sdk/python/examples/download_file.py --remote /tmp/README.md --local ./README.copy
 python3 sdk/python/examples/download_archive.py --path /tmp --local ./tmp.zip
 ```
+
+History management is available directly from the Python client:
+
+```python
+client.delete_execution("exec-123")
+result = client.clear_history()
+```

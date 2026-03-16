@@ -28,6 +28,14 @@ class ExecutionDetails:
         self.output = output
 
 
+class ClearHistoryResult:
+    """Outcome of clearing persisted history for one authenticated client."""
+
+    def __init__(self, deleted_count: int, skipped_running_count: int) -> None:
+        self.deleted_count = deleted_count
+        self.skipped_running_count = skipped_running_count
+
+
 class AttachSession:
     """Bidirectional attach session wrapper."""
 
@@ -154,6 +162,17 @@ class Client:
             request.running_only = running_only
         response = self._stub.ListExecutions(request)
         return list(response.executions)
+
+    def delete_execution(self, execution_id: str) -> str:
+        response = self._stub.DeleteExecution(agent_pb2.DeleteExecutionRequest(execution_id=execution_id))
+        return response.execution_id
+
+    def clear_history(self) -> ClearHistoryResult:
+        response = self._stub.ClearHistory(agent_pb2.ClearHistoryRequest())
+        return ClearHistoryResult(
+            deleted_count=response.deleted_count,
+            skipped_running_count=response.skipped_running_count,
+        )
 
     def cancel_execution(self, execution_id: str, grace_period_seconds: int = 5) -> agent_pb2.Execution:
         response = self._stub.CancelExecution(

@@ -92,6 +92,35 @@ func (s *Service) ListExecutions(ctx context.Context, req *agentv1.ListExecution
 	return resp, nil
 }
 
+func (s *Service) DeleteExecution(ctx context.Context, req *agentv1.DeleteExecutionRequest) (*agentv1.DeleteExecutionResponse, error) {
+	ownerCN, err := ownerFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if req.GetExecutionId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "execution_id is required")
+	}
+	if err := s.manager.Delete(req.GetExecutionId(), ownerCN); err != nil {
+		return nil, grpcErr(err)
+	}
+	return &agentv1.DeleteExecutionResponse{ExecutionId: req.GetExecutionId()}, nil
+}
+
+func (s *Service) ClearHistory(ctx context.Context, _ *agentv1.ClearHistoryRequest) (*agentv1.ClearHistoryResponse, error) {
+	ownerCN, err := ownerFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	deleted, skipped, err := s.manager.ClearHistory(ownerCN)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+	return &agentv1.ClearHistoryResponse{
+		DeletedCount:        uint64(deleted),
+		SkippedRunningCount: uint64(skipped),
+	}, nil
+}
+
 func (s *Service) CancelExecution(ctx context.Context, req *agentv1.CancelExecutionRequest) (*agentv1.CancelExecutionResponse, error) {
 	ownerCN, err := ownerFromContext(ctx)
 	if err != nil {
@@ -493,6 +522,8 @@ func grpcErr(err error) error {
 	case errors.Is(err, execution.ErrForbidden):
 		return status.Error(codes.PermissionDenied, err.Error())
 	case errors.Is(err, execution.ErrAlreadyAttached):
+		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, execution.ErrRunningHistoryDelete):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())

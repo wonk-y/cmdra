@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import grpc
+
 from cmdagent_client.gen.agent.v1 import agent_pb2
 
 from .conftest import wait_for_completion
@@ -90,3 +92,52 @@ def test_async_start_shell_session_and_attach(managed_daemon):
             break
 
     assert any(b"attached-async-output" in chunk for chunk in output_chunks)
+
+
+def test_delete_execution_and_clear_history(managed_daemon, tmp_path):
+    client = managed_daemon["client_a"]
+
+    deleted_execution = client.start_argv("/bin/echo", ["delete-python"])
+    wait_for_completion(client, deleted_execution.execution_id)
+    assert client.delete_execution(deleted_execution.execution_id) == deleted_execution.execution_id
+
+    try:
+        client.get_execution(deleted_execution.execution_id)
+    except grpc.RpcError as exc:
+        assert exc.code() == grpc.StatusCode.NOT_FOUND
+    else:  # pragma: no cover - defensive
+        raise AssertionError("deleted execution should not be returned")
+
+    finished_execution = client.start_argv("/bin/echo", ["clear-python"])
+    wait_for_completion(client, finished_execution.execution_id)
+
+    upload_source = tmp_path / "clear-upload.txt"
+    upload_source.write_text("clear-history python\n", encoding="utf-8")
+    remote_path = tmp_path / "clear-remote.txt"
+    upload = client.upload_file(str(upload_source), str(remote_path))
+
+    running_execution = client.start_shell_command("sleep 30", shell_binary="/bin/sh")
+
+    result = client.clear_history()
+    assert result.deleted_count == 2
+    assert result.skipped_running_count == 1
+
+    for deleted_id in (finished_execution.execution_id, upload.transfer_id):
+        try:
+            client.get_execution(deleted_id)
+        except grpc.RpcError as exc:
+            assert exc.code() == grpc.StatusCode.NOT_FOUND
+        else:  # pragma: no cover - defensive
+            raise AssertionError(f"{deleted_id} should be gone after clear_history")
+
+    running_meta = client.get_execution(running_execution.execution_id)
+    assert running_meta.state == agent_pb2.EXECUTION_STATE_RUNNING
+
+    try:
+        client.delete_execution(running_execution.execution_id)
+    except grpc.RpcError as exc:
+        assert exc.code() == grpc.StatusCode.FAILED_PRECONDITION
+    else:  # pragma: no cover - defensive
+        raise AssertionError("deleting a running execution should fail")
+
+    client.cancel_execution(running_execution.execution_id)

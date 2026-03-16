@@ -114,6 +114,8 @@ type keyMap struct {
 	ToggleHelp  key.Binding
 	Cancel      key.Binding
 	Attach      key.Binding
+	Delete      key.Binding
+	ClearAll    key.Binding
 	ViewOutput  key.Binding
 	RunningOnly key.Binding
 	Submit      key.Binding
@@ -133,6 +135,8 @@ func newKeyMap() keyMap {
 		ToggleHelp:  key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "toggle help")),
 		Cancel:      key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "cancel")),
 		Attach:      key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "attach")),
+		Delete:      key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "delete item")),
+		ClearAll:    key.NewBinding(key.WithKeys("X"), key.WithHelp("X", "clear history")),
 		ViewOutput:  key.NewBinding(key.WithKeys("o"), key.WithHelp("o", "toggle output")),
 		RunningOnly: key.NewBinding(key.WithKeys("f"), key.WithHelp("f", "running only")),
 		Submit:      key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "submit")),
@@ -176,6 +180,8 @@ type app struct {
 	connectInputs   []textinput.Model
 	formCursor      int
 	lastSubmittedID string
+	pendingAction   destructiveAction
+	pendingTargetID string
 
 	attach *attachState
 
@@ -195,6 +201,14 @@ type attachState struct {
 	awaitingCmd bool
 	exited      bool
 }
+
+type destructiveAction int
+
+const (
+	destructiveActionNone destructiveAction = iota
+	destructiveActionDelete
+	destructiveActionClearHistory
+)
 
 type loadExecutionsMsg struct {
 	items []*agentv1.Execution
@@ -237,6 +251,17 @@ type attachEventMsg struct {
 }
 
 type tickMsg time.Time
+
+type historyDeletedMsg struct {
+	executionID string
+	err         error
+}
+
+type historyClearedMsg struct {
+	deletedCount        uint64
+	skippedRunningCount uint64
+	err                 error
+}
 
 func New(client *cmdagentclient.Client, cfg cmdagentclient.DialConfig) tea.Model {
 	sp := spinner.New()
@@ -452,6 +477,11 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if a.attach != nil {
 			return a.handleAttachKey(msg)
 		}
+		deletePressed := key.Matches(msg, a.keys.Delete)
+		clearPressed := key.Matches(msg, a.keys.ClearAll)
+		if a.pendingAction != destructiveActionNone && !deletePressed && !clearPressed {
+			a.clearPendingDestructive()
+		}
 		if key.Matches(msg, a.keys.Quit) {
 			return a, tea.Quit
 		}
@@ -498,6 +528,32 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, a.keys.ViewOutput) && a.section == sectionExecutions && a.focus == focusDetail {
 			a.showOutput = !a.showOutput
 			return a, a.loadDetailForSelection()
+		}
+		if deletePressed && (a.section == sectionExecutions || a.section == sectionTransfers) && (a.focus == focusList || a.focus == focusDetail) {
+			selected := a.selectedItem()
+			if selected == nil {
+				return a, nil
+			}
+			if a.pendingAction == destructiveActionDelete && a.pendingTargetID == selected.GetExecutionId() {
+				a.loading = true
+				a.clearPendingDestructive()
+				return a, deleteHistoryCmd(a.client, selected.GetExecutionId())
+			}
+			a.pendingAction = destructiveActionDelete
+			a.pendingTargetID = selected.GetExecutionId()
+			a.setStatus(fmt.Sprintf("Press x again to delete %s from history.", selected.GetExecutionId()))
+			return a, nil
+		}
+		if clearPressed && (a.section == sectionExecutions || a.section == sectionTransfers) {
+			if a.pendingAction == destructiveActionClearHistory {
+				a.loading = true
+				a.clearPendingDestructive()
+				return a, clearHistoryCmd(a.client)
+			}
+			a.pendingAction = destructiveActionClearHistory
+			a.pendingTargetID = ""
+			a.setStatus("Press X again to clear finished history for the authenticated identity. Running items are preserved.")
+			return a, nil
 		}
 		if key.Matches(msg, a.keys.Cancel) && (a.section == sectionExecutions || a.section == sectionTransfers) && a.focus == focusList {
 			selected := a.selectedItem()
@@ -553,6 +609,29 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return a, nil
 		}
 		a.setStatus(fmt.Sprintf("Cancel requested for %s", msg.exec.GetExecutionId()))
+		return a, a.refreshCmd()
+	case historyDeletedMsg:
+		a.loading = false
+		if msg.err != nil {
+			a.setError(msg.err)
+			return a, nil
+		}
+		if a.selectedID[a.section] == msg.executionID {
+			a.selectedID[a.section] = ""
+		}
+		a.lastSubmittedID = ""
+		a.setStatus(fmt.Sprintf("Deleted %s from history.", msg.executionID))
+		return a, a.refreshCmd()
+	case historyClearedMsg:
+		a.loading = false
+		if msg.err != nil {
+			a.setError(msg.err)
+			return a, nil
+		}
+		a.selectedID[sectionExecutions] = ""
+		a.selectedID[sectionTransfers] = ""
+		a.lastSubmittedID = ""
+		a.setStatus(fmt.Sprintf("Cleared %d history item(s); skipped %d running item(s).", msg.deletedCount, msg.skippedRunningCount))
 		return a, a.refreshCmd()
 	}
 	return a, nil
@@ -838,17 +917,17 @@ func (a *app) renderFooter(width int) string {
 	}
 	short := []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Up, a.keys.Down, a.keys.Refresh, a.keys.ToggleHelp, a.keys.Quit}
 	if a.focus == focusList {
-		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Up, a.keys.Down, a.keys.Attach, a.keys.Cancel, a.keys.Refresh}
+		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Up, a.keys.Down, a.keys.Attach, a.keys.Cancel, a.keys.Delete, a.keys.ClearAll}
 	}
 	if a.focus == focusDetail {
-		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Up, a.keys.Down, a.keys.ViewOutput, a.keys.ToggleHelp, a.keys.Quit}
+		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Up, a.keys.Down, a.keys.ViewOutput, a.keys.Delete, a.keys.ClearAll, a.keys.Quit}
 	}
 	if a.focus == focusForm {
 		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Submit, a.keys.NextMode, a.keys.PrevMode, a.keys.ToggleHelp, a.keys.Quit}
 	}
 	helpText := a.help.ShortHelpView(short)
 	if a.showHelp {
-		helpText = a.help.FullHelpView([][]key.Binding{{a.keys.Up, a.keys.Down, a.keys.NextFocus, a.keys.PrevFocus}, {a.keys.Refresh, a.keys.Attach, a.keys.Cancel, a.keys.ViewOutput, a.keys.RunningOnly}, {a.keys.Submit, a.keys.NextMode, a.keys.PrevMode, a.keys.ToggleHelp, a.keys.Quit}})
+		helpText = a.help.FullHelpView([][]key.Binding{{a.keys.Up, a.keys.Down, a.keys.NextFocus, a.keys.PrevFocus}, {a.keys.Refresh, a.keys.Attach, a.keys.Cancel, a.keys.Delete, a.keys.ClearAll}, {a.keys.ViewOutput, a.keys.RunningOnly, a.keys.Submit, a.keys.NextMode, a.keys.PrevMode}, {a.keys.ToggleHelp, a.keys.Quit}})
 	}
 	lines := []string{statusStyle.Render(statusText), helpText}
 	return a.styles.footer.Width(width).Render(strings.Join(lines, "\n"))
@@ -1162,6 +1241,30 @@ func cancelExecutionCmd(client *cmdagentclient.Client, executionID string, grace
 	}
 }
 
+func deleteHistoryCmd(client *cmdagentclient.Client, executionID string) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		err := client.DeleteExecution(ctx, executionID)
+		return historyDeletedMsg{executionID: executionID, err: err}
+	}
+}
+
+func clearHistoryCmd(client *cmdagentclient.Client) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		result, err := client.ClearHistory(ctx)
+		if err != nil {
+			return historyClearedMsg{err: err}
+		}
+		return historyClearedMsg{
+			deletedCount:        result.DeletedCount,
+			skippedRunningCount: result.SkippedRunningCount,
+		}
+	}
+}
+
 func attachConnectCmd(client *cmdagentclient.Client, executionID string) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -1291,6 +1394,11 @@ func (a *app) setStatus(status string) {
 func (a *app) setError(err error) {
 	a.err = err
 	a.statusWhen = time.Now()
+}
+
+func (a *app) clearPendingDestructive() {
+	a.pendingAction = destructiveActionNone
+	a.pendingTargetID = ""
 }
 
 func (a *app) clampSelections() {

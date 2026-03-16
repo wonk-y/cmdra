@@ -31,6 +31,8 @@ The library exposes the same high-level operations as the Python SDK, including:
 - `Start Shell Session Async`
 - `Get Execution`
 - `List Executions`
+- `Delete Execution`
+- `Clear History`
 - `Get Execution With Output`
 - `Cancel Execution`
 - `Read Output`
@@ -40,6 +42,30 @@ The library exposes the same high-level operations as the Python SDK, including:
 - `Download File Async`
 - `Download Archive`
 - `Download Archive Async`
+
+## History management keywords
+
+The Robot wrapper includes explicit history-management keywords:
+
+- `Delete Execution`
+- `Clear History`
+
+Example usage:
+
+```robot
+*** Test Cases ***
+Delete One Finished Execution
+    ${execution}=    Start Argv    /bin/echo    hello
+    ${execution_id}=    Set Variable    ${execution.execution_id}
+    ${deleted_id}=    Delete Execution    ${execution_id}
+    Should Be Equal    ${deleted_id}    ${execution_id}
+
+Clear Finished History
+    ${result}=    Clear History
+    Log    deleted=${result.deleted_count} skipped_running=${result.skipped_running_count}
+```
+
+`Delete Execution` removes one finished execution or transfer from persisted history. `Clear History` removes finished history for the authenticated client identity and leaves running items in place.
 
 ## Run the smoke suite
 

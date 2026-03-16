@@ -283,6 +283,15 @@ func (s *Store) DeleteOutput(jobID string) error {
 	return err
 }
 
+// DeleteJob removes one persisted job row and its output by ID.
+func (s *Store) DeleteJob(jobID string) error {
+	result, err := s.db.Exec(`DELETE FROM jobs WHERE id = ?`, jobID)
+	if err != nil {
+		return err
+	}
+	return mustAffectOne(result)
+}
+
 // GetJob returns a job owned by the given CN.
 func (s *Store) GetJob(jobID, ownerCN string) (Job, error) {
 	row := s.db.QueryRow(`

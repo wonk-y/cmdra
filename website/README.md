@@ -13,6 +13,13 @@ npm run serve
 
 The generated static output is written to `website/build`.
 
+The site documents:
+
+- daemon install and service usage on Linux, macOS, and Windows
+- `cmdagentctl` and `cmdagentui` operations, including `delete` and `clear-history`
+- Go and Python SDK usage
+- Robot Framework and Ansible integration notes
+
 ## GitHub Pages
 
 The repository includes a Pages workflow in `.github/workflows/docs-pages.yml`.

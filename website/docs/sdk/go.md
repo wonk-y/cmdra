@@ -68,6 +68,15 @@ details, err := client.GetExecutionWithOutput(ctx, execution.GetExecutionId(), f
 
 `GetExecutionWithOutput` returns both metadata and replayed output chunks.
 
+## Delete history entries
+
+```go
+err = client.DeleteExecution(ctx, execution.GetExecutionId())
+result, err := client.ClearHistory(ctx)
+```
+
+`DeleteExecution` removes one finished execution or transfer from history. `ClearHistory` deletes all finished history owned by the authenticated client and reports how many running items were skipped.
+
 ## Upload and download files
 
 ```go

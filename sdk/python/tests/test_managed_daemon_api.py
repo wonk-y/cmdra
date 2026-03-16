@@ -24,3 +24,7 @@ def test_cross_identity_authorization(managed_daemon):
     with pytest.raises(grpc.RpcError) as exc:
         client_b.read_output(execution.execution_id)
     _assert_rpc_code(exc, grpc.StatusCode.PERMISSION_DENIED)
+
+    with pytest.raises(grpc.RpcError) as exc:
+        client_b.delete_execution(execution.execution_id)
+    _assert_rpc_code(exc, grpc.StatusCode.PERMISSION_DENIED)
