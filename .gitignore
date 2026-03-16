@@ -1,0 +1,15 @@
+.pytest_cache/
+__pycache__/
+.venv/
+*.pyc
+*.pyo
+*.test
+cmdagentctl
+cmdagentd
+python/cmdagent_client.egg-info/
+build/
+dist/
+data/
+audit.log
+certs/*.srl
+*.sqlite

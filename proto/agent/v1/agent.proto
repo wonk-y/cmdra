@@ -1,0 +1,231 @@
+syntax = "proto3";
+
+package agent.v1;
+
+option go_package = "cmdagent/gen/agent/v1;agentv1";
+
+import "google/protobuf/timestamp.proto";
+
+message ArgvCommand {
+  string binary = 1;
+  repeated string args = 2;
+}
+
+message ShellCommand {
+  string shell_binary = 1;
+  string command = 2;
+}
+
+message StartCommandRequest {
+  oneof command_spec {
+    ArgvCommand argv = 1;
+    ShellCommand shell = 2;
+  }
+}
+
+message StartCommandResponse {
+  Execution execution = 1;
+}
+
+message StartShellRequest {
+  string shell_binary = 1;
+  repeated string shell_args = 2;
+}
+
+message StartShellResponse {
+  Execution execution = 1;
+}
+
+enum OutputSource {
+  OUTPUT_SOURCE_UNSPECIFIED = 0;
+  OUTPUT_SOURCE_STDOUT = 1;
+  OUTPUT_SOURCE_STDERR = 2;
+  OUTPUT_SOURCE_SYSTEM = 3;
+}
+
+enum ExecutionKind {
+  EXECUTION_KIND_UNSPECIFIED = 0;
+  EXECUTION_KIND_COMMAND = 1;
+  EXECUTION_KIND_SHELL_SESSION = 2;
+  EXECUTION_KIND_UPLOAD = 3;
+  EXECUTION_KIND_DOWNLOAD = 4;
+  EXECUTION_KIND_ARCHIVE_DOWNLOAD = 5;
+}
+
+enum ExecutionState {
+  EXECUTION_STATE_UNSPECIFIED = 0;
+  EXECUTION_STATE_RUNNING = 1;
+  EXECUTION_STATE_EXITED = 2;
+  EXECUTION_STATE_CANCELED = 3;
+  EXECUTION_STATE_FAILED_TO_START = 4;
+}
+
+message Execution {
+  string execution_id = 1;
+  ExecutionKind kind = 2;
+  ExecutionState state = 3;
+  int64 pid = 4;
+  string owner_cn = 5;
+  repeated string command_argv = 6;
+  string command_shell = 7;
+  google.protobuf.Timestamp started_at = 8;
+  google.protobuf.Timestamp ended_at = 9;
+  int32 exit_code = 10;
+  string signal = 11;
+  int64 output_size_bytes = 12;
+  string last_upload_local_path = 13;
+  string last_upload_remote_path = 14;
+  string last_download_local_path = 15;
+  string last_download_remote_path = 16;
+  string last_upload_transfer_id = 17;
+  string last_download_transfer_id = 18;
+  int64 transfer_progress_bytes = 19;
+  int64 transfer_total_bytes = 20;
+  string transfer_direction = 21;
+  string error_message = 22;
+}
+
+message GetExecutionRequest {
+  string execution_id = 1;
+}
+
+message GetExecutionResponse {
+  Execution execution = 1;
+}
+
+message ListExecutionsRequest {
+  optional bool running_only = 1;
+}
+
+message ListExecutionsResponse {
+  repeated Execution executions = 1;
+}
+
+// The server performs graceful termination and force kill after grace_period_seconds.
+message CancelExecutionRequest {
+  string execution_id = 1;
+  uint32 grace_period_seconds = 2;
+}
+
+message CancelExecutionResponse {
+  Execution execution = 1;
+}
+
+message ReadOutputRequest {
+  string execution_id = 1;
+  int64 offset = 2;
+  bool discard_after_read = 3;
+}
+
+message OutputChunk {
+  string execution_id = 1;
+  int64 sequence = 2;
+  int64 offset = 3;
+  OutputSource source = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  bytes data = 6;
+  bool eof = 7;
+}
+
+message AttachStart {
+  string execution_id = 1;
+  bool replay_buffered = 2;
+  int64 replay_from_offset = 3;
+}
+
+message StdinChunk {
+  bytes data = 1;
+  bool eof = 2;
+}
+
+message AttachControl {
+  bool cancel_execution = 1;
+}
+
+message AttachRequest {
+  oneof payload {
+    AttachStart start = 1;
+    StdinChunk stdin = 2;
+    AttachControl control = 3;
+  }
+}
+
+message AttachAck {
+  Execution execution = 1;
+}
+
+message ExitEvent {
+  Execution execution = 1;
+}
+
+message AttachError {
+  string message = 1;
+}
+
+message AttachEvent {
+  oneof payload {
+    AttachAck ack = 1;
+    OutputChunk output = 2;
+    ExitEvent exit = 3;
+    AttachError error = 4;
+  }
+}
+
+message UploadFileMetadata {
+  string path = 1;
+  optional bool overwrite = 2;
+  uint32 file_mode = 3;
+  optional string client_local_path = 4;
+}
+
+message UploadFileRequest {
+  oneof payload {
+    UploadFileMetadata metadata = 1;
+    bytes chunk = 2;
+  }
+}
+
+message UploadFileResponse {
+  string path = 1;
+  uint64 bytes_written = 2;
+  string sha256 = 3;
+  string transfer_id = 4;
+}
+
+message DownloadFileRequest {
+  string path = 1;
+  uint32 chunk_size = 2;
+  optional string client_local_path = 3;
+}
+
+enum ArchiveFormat {
+  ARCHIVE_FORMAT_UNSPECIFIED = 0;
+  ARCHIVE_FORMAT_ZIP = 1;
+}
+
+message DownloadArchiveRequest {
+  repeated string paths = 1;
+  ArchiveFormat format = 2;
+  uint32 chunk_size = 3;
+  optional string client_local_path = 4;
+}
+
+message FileChunk {
+  bytes data = 1;
+  uint64 offset = 2;
+  bool eof = 3;
+  string transfer_id = 4;
+}
+
+service AgentService {
+  rpc StartCommand(StartCommandRequest) returns (StartCommandResponse);
+  rpc StartShell(StartShellRequest) returns (StartShellResponse);
+  rpc GetExecution(GetExecutionRequest) returns (GetExecutionResponse);
+  rpc ListExecutions(ListExecutionsRequest) returns (ListExecutionsResponse);
+  rpc CancelExecution(CancelExecutionRequest) returns (CancelExecutionResponse);
+  rpc ReadOutput(ReadOutputRequest) returns (stream OutputChunk);
+  rpc Attach(stream AttachRequest) returns (stream AttachEvent);
+  rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
+  rpc DownloadFile(DownloadFileRequest) returns (stream FileChunk);
+  rpc DownloadArchive(DownloadArchiveRequest) returns (stream FileChunk);
+}

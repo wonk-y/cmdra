@@ -1,0 +1,5 @@
+- hosts: cmdagent
+  gather_facts: false
+  tasks:
+    - name: run command through cmdagent
+      command: /bin/echo ansible-ok
