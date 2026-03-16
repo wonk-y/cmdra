@@ -768,6 +768,7 @@ func (a *app) handleCommandForm(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.setError(err)
 			return a, nil
 		}
+		a.resetCommandForm()
 		a.loading = true
 		return a, cmd
 	}
@@ -800,6 +801,7 @@ func (a *app) handleTransferForm(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.setError(err)
 			return a, nil
 		}
+		a.resetTransferForm()
 		a.loading = true
 		return a, cmd
 	}
@@ -1625,6 +1627,22 @@ func (a *app) activeFormFieldCount() int {
 	default:
 		return 0
 	}
+}
+
+func (a *app) resetCommandForm() {
+	for i := range a.commandInputs {
+		a.commandInputs[i].SetValue("")
+	}
+	a.formCursor = 0
+	a.syncFormFocus()
+}
+
+func (a *app) resetTransferForm() {
+	for i := range a.transferInputs {
+		a.transferInputs[i].SetValue("")
+	}
+	a.formCursor = 0
+	a.syncFormFocus()
 }
 
 func (a *app) detach() {

@@ -156,3 +156,56 @@ func TestKeyMsgBytesSupportsPasteAndExtendedKeys(t *testing.T) {
 		t.Fatalf("unexpected ctrl+right mapping: %q", got)
 	}
 }
+
+func TestCommandFormClearsFieldsAfterSuccessfulSubmit(t *testing.T) {
+	model := New(nil, cmdagentclient.DialConfig{}).(*app)
+	model.section = sectionNewCommand
+	model.focus = focusForm
+	model.commandMode = commandModeShell
+	model.formCursor = 1
+	model.commandInputs[0].SetValue("/bin/sh")
+	model.commandInputs[1].SetValue("printf 'hello\\n'")
+	model.commandInputs[2].SetValue("--unused")
+	model.commandInputs[3].SetValue("true")
+	model.syncFormFocus()
+
+	_, cmd := model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if cmd == nil {
+		t.Fatal("expected submit command")
+	}
+
+	for i, input := range model.commandInputs {
+		if got := input.Value(); got != "" {
+			t.Fatalf("expected command input %d to be cleared, got %q", i, got)
+		}
+	}
+	if model.formCursor != 0 {
+		t.Fatalf("expected form cursor reset to 0, got %d", model.formCursor)
+	}
+}
+
+func TestTransferFormClearsFieldsAfterSuccessfulSubmit(t *testing.T) {
+	model := New(nil, cmdagentclient.DialConfig{}).(*app)
+	model.section = sectionNewTransfer
+	model.focus = focusForm
+	model.transferMode = transferModeArchive
+	model.formCursor = 2
+	model.transferInputs[0].SetValue("./tmp.zip")
+	model.transferInputs[1].SetValue("/tmp,/var/tmp")
+	model.transferInputs[2].SetValue("65536")
+	model.syncFormFocus()
+
+	_, cmd := model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if cmd == nil {
+		t.Fatal("expected submit command")
+	}
+
+	for i, input := range model.transferInputs {
+		if got := input.Value(); got != "" {
+			t.Fatalf("expected transfer input %d to be cleared, got %q", i, got)
+		}
+	}
+	if model.formCursor != 0 {
+		t.Fatalf("expected form cursor reset to 0, got %d", model.formCursor)
+	}
+}
