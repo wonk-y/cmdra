@@ -194,6 +194,7 @@ type app struct {
 
 type attachState struct {
 	executionID string
+	usesPTY     bool
 	session     *cmdagentclient.AttachSession
 	cancel      context.CancelFunc
 	viewport    viewport.Model
@@ -270,6 +271,7 @@ func New(client *cmdagentclient.Client, cfg cmdagentclient.DialConfig) tea.Model
 	detail.SetContent("Loading…")
 
 	commandInputs := make([]textinput.Model, 3)
+	commandInputs = make([]textinput.Model, 4)
 	for i := range commandInputs {
 		commandInputs[i] = textinput.New()
 		commandInputs[i].CharLimit = 4096
@@ -278,6 +280,7 @@ func New(client *cmdagentclient.Client, cfg cmdagentclient.DialConfig) tea.Model
 	commandInputs[0].Placeholder = "Binary or shell path"
 	commandInputs[1].Placeholder = "Args or command string"
 	commandInputs[2].Placeholder = "Shell args (session mode only)"
+	commandInputs[3].Placeholder = "Use PTY (true/false)"
 	commandInputs[0].Focus()
 
 	transferInputs := make([]textinput.Model, 3)
@@ -349,6 +352,10 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.height = msg.Height
 		a.ready = true
 		a.resize()
+		if a.attach != nil && a.attach.usesPTY {
+			rows, cols := a.attachPTYSize()
+			return a, attachResizeCmd(a.attach.session, rows, cols)
+		}
 		return a, nil
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -432,12 +439,17 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return a, nil
 		}
 		vp := viewport.New(a.width-4, max(1, a.height-6))
-		a.attach = &attachState{executionID: msg.ack.GetExecutionId(), session: msg.session, cancel: msg.cancel, viewport: vp}
+		a.attach = &attachState{executionID: msg.ack.GetExecutionId(), usesPTY: msg.ack.GetUsesPty(), session: msg.session, cancel: msg.cancel, viewport: vp}
 		a.attach.transcript.WriteString(renderExecutionSummary(msg.ack))
 		a.attach.transcript.WriteString("\n")
 		a.attach.viewport.SetContent(a.attach.transcript.String())
 		a.setStatus("Attach mode active. Use ctrl+g q to detach, ctrl+g c to cancel, ctrl+g h for help.")
-		return a, a.recvAttachCmd()
+		cmds = append(cmds, a.recvAttachCmd())
+		if a.attach.usesPTY {
+			rows, cols := a.attachPTYSize()
+			cmds = append(cmds, attachResizeCmd(a.attach.session, rows, cols))
+		}
+		return a, tea.Batch(cmds...)
 	case attachEventMsg:
 		if a.attach == nil {
 			return a, nil
@@ -984,13 +996,15 @@ func (a *app) renderCommandForm(width, height int) string {
 		lines = append(lines,
 			"Shell Binary:", a.commandInputs[0].View(),
 			"Command:", a.commandInputs[1].View(),
-			"", a.styles.muted.Render("Shell binary can be blank if the daemon side provides a default."),
+			"Use PTY:", a.commandInputs[3].View(),
+			"", a.styles.muted.Render("Shell binary can be blank if the daemon side provides a default. PTY merges terminal-style output into one stream."),
 		)
 	case commandModeSession:
 		lines = append(lines,
 			"Shell Binary:", a.commandInputs[0].View(),
 			"Shell Args:", a.commandInputs[2].View(),
-			"", a.styles.muted.Render("Start a persistent shell session, then attach with 'a' from Executions."),
+			"Use PTY:", a.commandInputs[3].View(),
+			"", a.styles.muted.Render("Start a persistent shell session, then attach with 'a' from Executions. PTY enables prompt-oriented terminal behavior."),
 		)
 	}
 	return lipgloss.NewStyle().Width(width).Height(height).MaxHeight(height).Render(strings.Join(lines, "\n"))
@@ -1122,7 +1136,12 @@ func (a *app) submitCommandForm() (tea.Cmd, error) {
 		if command == "" {
 			return nil, errors.New("command is required")
 		}
-		return startShellCmd(a.client, strings.TrimSpace(a.commandInputs[0].Value()), command), nil
+		usePTY, err := parseBoolInput(a.commandInputs[3].Value())
+		if err != nil {
+			return nil, err
+		}
+		rows, cols := a.commandPTYSize()
+		return startShellCmd(a.client, strings.TrimSpace(a.commandInputs[0].Value()), command, usePTY, rows, cols), nil
 	case commandModeSession:
 		shell := strings.TrimSpace(a.commandInputs[0].Value())
 		if shell == "" {
@@ -1132,7 +1151,12 @@ func (a *app) submitCommandForm() (tea.Cmd, error) {
 		if err != nil {
 			return nil, err
 		}
-		return startSessionCmd(a.client, shell, args), nil
+		usePTY, err := parseBoolInput(a.commandInputs[3].Value())
+		if err != nil {
+			return nil, err
+		}
+		rows, cols := a.commandPTYSize()
+		return startSessionCmd(a.client, shell, args, usePTY, rows, cols), nil
 	default:
 		return nil, errors.New("unknown command mode")
 	}
@@ -1186,20 +1210,28 @@ func startArgvCmd(client *cmdagentclient.Client, binary string, args []string) t
 	}
 }
 
-func startShellCmd(client *cmdagentclient.Client, shellBinary, command string) tea.Cmd {
+func startShellCmd(client *cmdagentclient.Client, shellBinary, command string, usePTY bool, ptyRows, ptyCols uint32) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
-		execMeta, err := client.StartShellCommand(ctx, shellBinary, command)
+		execMeta, err := client.StartShellCommandWithOptions(ctx, shellBinary, command, cmdagentclient.ShellOptions{
+			UsePTY:  usePTY,
+			PTYRows: ptyRows,
+			PTYCols: ptyCols,
+		})
 		return startExecutionMsg{exec: execMeta, err: err}
 	}
 }
 
-func startSessionCmd(client *cmdagentclient.Client, shellBinary string, args []string) tea.Cmd {
+func startSessionCmd(client *cmdagentclient.Client, shellBinary string, args []string, usePTY bool, ptyRows, ptyCols uint32) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
-		execMeta, err := client.StartShellSession(ctx, shellBinary, args)
+		execMeta, err := client.StartShellSessionWithOptions(ctx, shellBinary, args, cmdagentclient.ShellOptions{
+			UsePTY:  usePTY,
+			PTYRows: ptyRows,
+			PTYCols: ptyCols,
+		})
 		return startExecutionMsg{exec: execMeta, err: err}
 	}
 }
@@ -1307,6 +1339,18 @@ func sendAttachInputCmd(session *cmdagentclient.AttachSession, data []byte, eof 
 	}
 }
 
+func attachResizeCmd(session *cmdagentclient.AttachSession, rows, cols uint32) tea.Cmd {
+	return func() tea.Msg {
+		if rows == 0 || cols == 0 {
+			return nil
+		}
+		if err := session.ResizePTY(rows, cols); err != nil {
+			return attachEventMsg{err: err}
+		}
+		return nil
+	}
+}
+
 func (a *app) syncDetailViewport() {
 	if a.detailViewport.Width == 0 || a.detailViewport.Height == 0 {
 		return
@@ -1346,6 +1390,14 @@ func (a *app) syncDetailViewport() {
 		}
 		a.detailViewport.SetYOffset(previousYOffset)
 	}
+}
+
+func (a *app) commandPTYSize() (uint32, uint32) {
+	return uint32(max(1, a.height-8)), uint32(max(1, a.width-10))
+}
+
+func (a *app) attachPTYSize() (uint32, uint32) {
+	return uint32(max(1, a.height-4)), uint32(max(1, a.width-4))
 }
 
 func (a *app) selectedItem() *agentv1.Execution {
@@ -1470,9 +1522,14 @@ func matchesSelectionID(item *agentv1.Execution, id string) bool {
 }
 
 func (a *app) syncFormFocus() {
-	focusField := func(fields []textinput.Model, idx int) []textinput.Model {
+	focusField := func(fields []textinput.Model, active []int, cursor int, focused bool) []textinput.Model {
+		target := -1
+		if len(active) > 0 {
+			cursor = min(cursor, len(active)-1)
+			target = active[cursor]
+		}
 		for i := range fields {
-			if i == idx && a.focus == focusForm {
+			if i == target && focused {
 				fields[i].Focus()
 			} else {
 				fields[i].Blur()
@@ -1480,9 +1537,21 @@ func (a *app) syncFormFocus() {
 		}
 		return fields
 	}
-	a.commandInputs = focusField(a.commandInputs, min(a.formCursor, len(a.commandInputs)-1))
-	a.transferInputs = focusField(a.transferInputs, min(a.formCursor, len(a.transferInputs)-1))
-	a.connectInputs = focusField(a.connectInputs, min(a.formCursor, len(a.connectInputs)-1))
+	commandActive := []int{0, 1}
+	switch a.commandMode {
+	case commandModeShell:
+		commandActive = []int{0, 1, 3}
+	case commandModeSession:
+		commandActive = []int{0, 2, 3}
+	}
+	transferActive := []int{0, 1}
+	if a.transferMode != transferModeUpload {
+		transferActive = []int{0, 1, 2}
+	}
+	connectionActive := []int{0, 1, 2, 3, 4}
+	a.commandInputs = focusField(a.commandInputs, commandActive, a.formCursor, a.focus == focusForm && a.section == sectionNewCommand)
+	a.transferInputs = focusField(a.transferInputs, transferActive, a.formCursor, a.focus == focusForm && a.section == sectionNewTransfer)
+	a.connectInputs = focusField(a.connectInputs, connectionActive, a.formCursor, a.focus == focusForm && a.section == sectionConnection)
 }
 
 func (a *app) activeFormFieldCount() int {
@@ -1490,6 +1559,8 @@ func (a *app) activeFormFieldCount() int {
 	case sectionNewCommand:
 		switch a.commandMode {
 		case commandModeSession:
+			return 3
+		case commandModeShell:
 			return 3
 		default:
 			return 2
@@ -1583,6 +1654,12 @@ func renderExecutionSummary(execMeta *agentv1.Execution) string {
 	if execMeta.GetCommandShell() != "" {
 		lines = append(lines, fmt.Sprintf("Shell: %s", execMeta.GetCommandShell()))
 	}
+	if execMeta.GetUsesPty() {
+		lines = append(lines, "Uses PTY: true")
+		if execMeta.GetPtyRows() > 0 && execMeta.GetPtyCols() > 0 {
+			lines = append(lines, fmt.Sprintf("PTY Size: %dx%d", execMeta.GetPtyRows(), execMeta.GetPtyCols()))
+		}
+	}
 	if execMeta.GetLastUploadTransferId() != "" {
 		lines = append(lines, fmt.Sprintf("Upload Transfer ID: %s", execMeta.GetLastUploadTransferId()))
 	}
@@ -1631,6 +1708,18 @@ func commandLabel(execMeta *agentv1.Execution) string {
 			return strings.Join(execMeta.GetCommandArgv(), " ")
 		}
 		return execMeta.GetCommandShell()
+	}
+}
+
+func parseBoolInput(raw string) (bool, error) {
+	value := strings.TrimSpace(strings.ToLower(raw))
+	switch value {
+	case "", "false", "f", "no", "n", "0":
+		return false, nil
+	case "true", "t", "yes", "y", "1":
+		return true, nil
+	default:
+		return false, errors.New("PTY must be true or false")
 	}
 }
 

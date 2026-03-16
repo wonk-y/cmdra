@@ -39,6 +39,13 @@ type DownloadOptions struct {
 	ChunkSize int
 }
 
+// ShellOptions controls shell-command and shell-session startup behavior.
+type ShellOptions struct {
+	UsePTY  bool
+	PTYRows uint32
+	PTYCols uint32
+}
+
 // DownloadResult reports the final transfer metadata returned by streaming downloads.
 type DownloadResult struct {
 	BytesWritten uint64
@@ -158,9 +165,20 @@ func (c *Client) StartArgvAsync(ctx context.Context, binary string, args []strin
 
 // StartShellCommand runs one shell command string.
 func (c *Client) StartShellCommand(ctx context.Context, shellBinary, command string) (*agentv1.Execution, error) {
+	return c.StartShellCommandWithOptions(ctx, shellBinary, command, ShellOptions{})
+}
+
+// StartShellCommandWithOptions runs one shell command string with optional PTY backing.
+func (c *Client) StartShellCommandWithOptions(ctx context.Context, shellBinary, command string, opts ShellOptions) (*agentv1.Execution, error) {
 	resp, err := c.api.StartCommand(ctx, &agentv1.StartCommandRequest{
 		CommandSpec: &agentv1.StartCommandRequest_Shell{
-			Shell: &agentv1.ShellCommand{ShellBinary: shellBinary, Command: command},
+			Shell: &agentv1.ShellCommand{
+				ShellBinary: shellBinary,
+				Command:     command,
+				UsePty:      opts.UsePTY,
+				PtyRows:     opts.PTYRows,
+				PtyCols:     opts.PTYCols,
+			},
 		},
 	})
 	if err != nil {
@@ -171,19 +189,32 @@ func (c *Client) StartShellCommand(ctx context.Context, shellBinary, command str
 
 // StartShellCommandAsync runs StartShellCommand in a background goroutine.
 func (c *Client) StartShellCommandAsync(ctx context.Context, shellBinary, command string) *ExecutionFuture {
+	return c.StartShellCommandAsyncWithOptions(ctx, shellBinary, command, ShellOptions{})
+}
+
+// StartShellCommandAsyncWithOptions runs StartShellCommandWithOptions in a background goroutine.
+func (c *Client) StartShellCommandAsyncWithOptions(ctx context.Context, shellBinary, command string, opts ShellOptions) *ExecutionFuture {
 	future := &ExecutionFuture{done: make(chan struct{})}
 	go func() {
 		defer close(future.done)
-		future.resp, future.err = c.StartShellCommand(ctx, shellBinary, command)
+		future.resp, future.err = c.StartShellCommandWithOptions(ctx, shellBinary, command, opts)
 	}()
 	return future
 }
 
 // StartShellSession starts a persistent shell process that clients can later attach to.
 func (c *Client) StartShellSession(ctx context.Context, shellBinary string, shellArgs []string) (*agentv1.Execution, error) {
+	return c.StartShellSessionWithOptions(ctx, shellBinary, shellArgs, ShellOptions{})
+}
+
+// StartShellSessionWithOptions starts a persistent shell process with optional PTY backing.
+func (c *Client) StartShellSessionWithOptions(ctx context.Context, shellBinary string, shellArgs []string, opts ShellOptions) (*agentv1.Execution, error) {
 	resp, err := c.api.StartShell(ctx, &agentv1.StartShellRequest{
 		ShellBinary: shellBinary,
 		ShellArgs:   shellArgs,
+		UsePty:      opts.UsePTY,
+		PtyRows:     opts.PTYRows,
+		PtyCols:     opts.PTYCols,
 	})
 	if err != nil {
 		return nil, err
@@ -193,10 +224,15 @@ func (c *Client) StartShellSession(ctx context.Context, shellBinary string, shel
 
 // StartShellSessionAsync runs StartShellSession in a background goroutine.
 func (c *Client) StartShellSessionAsync(ctx context.Context, shellBinary string, shellArgs []string) *ExecutionFuture {
+	return c.StartShellSessionAsyncWithOptions(ctx, shellBinary, shellArgs, ShellOptions{})
+}
+
+// StartShellSessionAsyncWithOptions runs StartShellSessionWithOptions in a background goroutine.
+func (c *Client) StartShellSessionAsyncWithOptions(ctx context.Context, shellBinary string, shellArgs []string, opts ShellOptions) *ExecutionFuture {
 	future := &ExecutionFuture{done: make(chan struct{})}
 	go func() {
 		defer close(future.done)
-		future.resp, future.err = c.StartShellSession(ctx, shellBinary, shellArgs)
+		future.resp, future.err = c.StartShellSessionWithOptions(ctx, shellBinary, shellArgs, opts)
 	}()
 	return future
 }
@@ -445,6 +481,15 @@ func (s *AttachSession) CancelExecution() error {
 	return s.stream.Send(&agentv1.AttachRequest{
 		Payload: &agentv1.AttachRequest_Control{
 			Control: &agentv1.AttachControl{CancelExecution: true},
+		},
+	})
+}
+
+// ResizePTY sends an updated terminal size for a PTY-backed execution.
+func (s *AttachSession) ResizePTY(rows, cols uint32) error {
+	return s.stream.Send(&agentv1.AttachRequest{
+		Payload: &agentv1.AttachRequest_Control{
+			Control: &agentv1.AttachControl{PtyRows: rows, PtyCols: cols},
 		},
 	})
 }

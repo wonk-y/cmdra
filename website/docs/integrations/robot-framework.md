@@ -27,8 +27,12 @@ The library exposes the same high-level operations as the Python SDK, including:
 - `Start Argv Async`
 - `Start Shell Command`
 - `Start Shell Command Async`
+- `Start Shell Command With PTY`
+- `Start Shell Command Async With PTY`
 - `Start Shell Session`
 - `Start Shell Session Async`
+- `Start Shell Session With PTY`
+- `Start Shell Session Async With PTY`
 - `Get Execution`
 - `List Executions`
 - `Delete Execution`
@@ -66,6 +70,17 @@ Clear Finished History
 ```
 
 `Delete Execution` removes one finished execution or transfer from persisted history. `Clear History` removes finished history for the authenticated client identity and leaves running items in place.
+
+## PTY-oriented shell keywords
+
+The Robot wrapper also exposes PTY-specific shell keywords:
+
+- `Start Shell Command With PTY`
+- `Start Shell Command Async With PTY`
+- `Start Shell Session With PTY`
+- `Start Shell Session Async With PTY`
+
+Use those when you want terminal-style shell behavior on Unix-like platforms or on Windows through ConPTY.
 
 ## Run the smoke suite
 

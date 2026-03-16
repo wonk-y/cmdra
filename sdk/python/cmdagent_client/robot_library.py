@@ -56,20 +56,62 @@ class CmdAgentLibrary:
         return self._client.start_argv_async(binary, list(args))
 
     @keyword
-    def start_shell_command(self, command: str, shell_binary: str = ""):
-        return self._client.start_shell_command(command, shell_binary=shell_binary)
+    def start_shell_command(
+        self,
+        command: str,
+        shell_binary: str = "",
+        use_pty: bool = False,
+        pty_rows: int = 0,
+        pty_cols: int = 0,
+    ):
+        return self._client.start_shell_command(
+            command,
+            shell_binary=shell_binary,
+            use_pty=use_pty,
+            pty_rows=pty_rows,
+            pty_cols=pty_cols,
+        )
 
     @keyword
-    def start_shell_command_async(self, command: str, shell_binary: str = ""):
-        return self._client.start_shell_command_async(command, shell_binary=shell_binary)
+    def start_shell_command_async(
+        self,
+        command: str,
+        shell_binary: str = "",
+        use_pty: bool = False,
+        pty_rows: int = 0,
+        pty_cols: int = 0,
+    ):
+        return self._client.start_shell_command_async(
+            command,
+            shell_binary=shell_binary,
+            use_pty=use_pty,
+            pty_rows=pty_rows,
+            pty_cols=pty_cols,
+        )
 
     @keyword
-    def start_shell_session(self, shell_binary: str, *shell_args: str):
-        return self._client.start_shell_session(shell_binary, list(shell_args))
+    def start_shell_command_with_pty(self, command: str, shell_binary: str = "", pty_rows: int = 0, pty_cols: int = 0):
+        return self._client.start_shell_command(command, shell_binary=shell_binary, use_pty=True, pty_rows=pty_rows, pty_cols=pty_cols)
 
     @keyword
-    def start_shell_session_async(self, shell_binary: str, *shell_args: str):
-        return self._client.start_shell_session_async(shell_binary, list(shell_args))
+    def start_shell_command_async_with_pty(self, command: str, shell_binary: str = "", pty_rows: int = 0, pty_cols: int = 0):
+        return self._client.start_shell_command_async(command, shell_binary=shell_binary, use_pty=True, pty_rows=pty_rows, pty_cols=pty_cols)
+
+    @keyword
+    def start_shell_session(self, shell_binary: str, *shell_args: str, use_pty: bool = False, pty_rows: int = 0, pty_cols: int = 0):
+        return self._client.start_shell_session(shell_binary, list(shell_args), use_pty=use_pty, pty_rows=pty_rows, pty_cols=pty_cols)
+
+    @keyword
+    def start_shell_session_async(self, shell_binary: str, *shell_args: str, use_pty: bool = False, pty_rows: int = 0, pty_cols: int = 0):
+        return self._client.start_shell_session_async(shell_binary, list(shell_args), use_pty=use_pty, pty_rows=pty_rows, pty_cols=pty_cols)
+
+    @keyword
+    def start_shell_session_with_pty(self, shell_binary: str, *shell_args: str, pty_rows: int = 0, pty_cols: int = 0):
+        return self._client.start_shell_session(shell_binary, list(shell_args), use_pty=True, pty_rows=pty_rows, pty_cols=pty_cols)
+
+    @keyword
+    def start_shell_session_async_with_pty(self, shell_binary: str, *shell_args: str, pty_rows: int = 0, pty_cols: int = 0):
+        return self._client.start_shell_session_async(shell_binary, list(shell_args), use_pty=True, pty_rows=pty_rows, pty_cols=pty_cols)
 
     @keyword
     def get_execution(self, execution_id: str):

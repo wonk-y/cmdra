@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 import grpc
 
 from cmdagent_client.gen.agent.v1 import agent_pb2
@@ -74,6 +76,46 @@ def test_attach_shell_session(managed_daemon):
     assert any(b"attached-output" in chunk for chunk in output_chunks)
 
 
+def test_shell_command_with_pty(managed_daemon):
+    client = managed_daemon["client_a"]
+    execution = client.start_shell_command("printf 'python-pty\\n'", shell_binary="/bin/sh", use_pty=True)
+    finished = wait_for_completion(client, execution.execution_id)
+    details = client.get_execution_with_output(execution.execution_id)
+
+    assert finished.uses_pty is True
+    assert b"python-pty" in b"".join(chunk.data for chunk in details.output if not chunk.eof)
+
+
+def test_shell_session_with_pty_resize(managed_daemon):
+    client = managed_daemon["client_a"]
+    execution = client.start_shell_session("/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+
+    assert execution.uses_pty is True
+    assert execution.pty_rows == 24
+    assert execution.pty_cols == 80
+
+    session = client.attach(execution.execution_id, replay_buffered=True)
+    ack = session.recv()
+    assert ack.HasField("ack")
+    assert ack.ack.execution.pty_rows == 24
+    assert ack.ack.execution.pty_cols == 80
+
+    session.resize_pty(40, 100)
+
+    deadline = time.time() + 5
+    while time.time() < deadline:
+        current = client.get_execution(execution.execution_id)
+        if current.pty_rows == 40 and current.pty_cols == 100:
+            break
+        time.sleep(0.1)
+    else:  # pragma: no cover - defensive
+        current = client.get_execution(execution.execution_id)
+        raise AssertionError(f"expected PTY size 40x100, got {current.pty_rows}x{current.pty_cols}")
+
+    session.send_stdin(b"exit\n", eof=True)
+    wait_for_completion(client, execution.execution_id)
+
+
 def test_async_start_shell_session_and_attach(managed_daemon):
     client = managed_daemon["client_a"]
     execution = client.start_shell_session_async("/bin/sh").result(timeout=10)
@@ -91,6 +133,9 @@ def test_async_start_shell_session_and_attach(managed_daemon):
         if event.HasField("exit"):
             break
 
+    if not any(b"attached-async-output" in chunk for chunk in output_chunks):
+        details = client.get_execution_with_output(execution.execution_id)
+        output_chunks.extend(chunk.data for chunk in details.output if not chunk.eof)
     assert any(b"attached-async-output" in chunk for chunk in output_chunks)
 
 

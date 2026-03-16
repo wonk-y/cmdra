@@ -46,6 +46,9 @@ func (s *Service) StartCommand(ctx context.Context, req *agentv1.StartCommandReq
 	}
 	meta, err := s.manager.StartCommand(ownerCN, spec)
 	if err != nil {
+		if errors.Is(err, execution.ErrPTYUnsupported) {
+			return nil, grpcErr(err)
+		}
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &agentv1.StartCommandResponse{Execution: toProtoExecution(meta)}, nil
@@ -56,8 +59,11 @@ func (s *Service) StartShell(ctx context.Context, req *agentv1.StartShellRequest
 	if err != nil {
 		return nil, err
 	}
-	meta, err := s.manager.StartShell(ownerCN, req.GetShellBinary(), req.GetShellArgs())
+	meta, err := s.manager.StartShellWithOptions(ownerCN, req.GetShellBinary(), req.GetShellArgs(), req.GetUsePty(), req.GetPtyRows(), req.GetPtyCols())
 	if err != nil {
+		if errors.Is(err, execution.ErrPTYUnsupported) {
+			return nil, grpcErr(err)
+		}
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &agentv1.StartShellResponse{Execution: toProtoExecution(meta)}, nil
@@ -226,10 +232,18 @@ func (s *Service) Attach(stream grpc.BidiStreamingServer[agentv1.AttachRequest, 
 				}
 				continue
 			}
-			if control := req.GetControl(); control != nil && control.GetCancelExecution() {
-				if _, err := s.manager.Cancel(start.GetExecutionId(), ownerCN, 0); err != nil {
-					recvErr <- err
-					return
+			if control := req.GetControl(); control != nil {
+				if control.GetCancelExecution() {
+					if _, err := s.manager.Cancel(start.GetExecutionId(), ownerCN, 0); err != nil {
+						recvErr <- err
+						return
+					}
+				}
+				if control.GetPtyRows() > 0 && control.GetPtyCols() > 0 {
+					if err := s.manager.ResizePTY(start.GetExecutionId(), ownerCN, control.GetPtyRows(), control.GetPtyCols()); err != nil {
+						recvErr <- err
+						return
+					}
 				}
 			}
 		}
@@ -507,7 +521,13 @@ func mapCommandSpec(req *agentv1.StartCommandRequest) (execution.CommandSpec, er
 	case *agentv1.StartCommandRequest_Argv:
 		return execution.CommandSpec{Argv: &execution.ArgvSpec{Binary: spec.Argv.GetBinary(), Args: spec.Argv.GetArgs()}}, nil
 	case *agentv1.StartCommandRequest_Shell:
-		return execution.CommandSpec{Shell: &execution.ShellSpec{ShellBinary: spec.Shell.GetShellBinary(), Command: spec.Shell.GetCommand()}}, nil
+		return execution.CommandSpec{Shell: &execution.ShellSpec{
+			ShellBinary: spec.Shell.GetShellBinary(),
+			Command:     spec.Shell.GetCommand(),
+			UsePTY:      spec.Shell.GetUsePty(),
+			PTYRows:     spec.Shell.GetPtyRows(),
+			PTYCols:     spec.Shell.GetPtyCols(),
+		}}, nil
 	default:
 		return execution.CommandSpec{}, errors.New("command spec is required")
 	}
@@ -525,6 +545,10 @@ func grpcErr(err error) error {
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, execution.ErrRunningHistoryDelete):
 		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, execution.ErrPTYRequired):
+		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, execution.ErrPTYUnsupported):
+		return status.Error(codes.Unimplemented, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}
@@ -552,6 +576,9 @@ func toProtoExecution(view execution.ExecutionView) *agentv1.Execution {
 		TransferProgressBytes:  view.TransferProgressBytes,
 		TransferDirection:      view.TransferDirection,
 		ErrorMessage:           view.ErrorMessage,
+		UsesPty:                view.UsesPTY,
+		PtyRows:                view.PTYRows,
+		PtyCols:                view.PTYCols,
 	}
 	if view.EndedAt != nil {
 		msg.EndedAt = timestamppb.New(*view.EndedAt)

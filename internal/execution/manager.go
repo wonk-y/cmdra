@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -29,6 +30,10 @@ var (
 	ErrAlreadyAttached = errors.New("execution already has an attached client")
 	// ErrRunningHistoryDelete prevents history cleanup from removing active items.
 	ErrRunningHistoryDelete = errors.New("cannot delete running execution or transfer")
+	// ErrPTYUnsupported is returned when a caller requests PTY execution on an unsupported platform.
+	ErrPTYUnsupported = errors.New("pty execution is not supported on this platform")
+	// ErrPTYRequired is returned when a resize is requested for a non-PTY execution.
+	ErrPTYRequired = errors.New("execution is not using a PTY")
 )
 
 // Kind identifies the high-level job type stored in history.
@@ -77,6 +82,9 @@ type ArgvSpec struct {
 type ShellSpec struct {
 	ShellBinary string
 	Command     string
+	UsePTY      bool
+	PTYRows     uint32
+	PTYCols     uint32
 }
 
 // OutputEvent is the in-memory/live replay representation of one output chunk.
@@ -114,6 +122,9 @@ type ExecutionView struct {
 	TransferProgressBytes  int64
 	TransferTotalBytes     *int64
 	ErrorMessage           string
+	UsesPTY                bool
+	PTYRows                uint32
+	PTYCols                uint32
 }
 
 // Config configures the execution manager and backing history store.
@@ -152,9 +163,15 @@ type managedExecution struct {
 	outputSizeBytes int64
 
 	cmd             *exec.Cmd
+	process         *os.Process
+	waitFunc        func() (int32, string, error)
 	stdin           io.WriteCloser
+	pty             platform.PTY
 	sequence        int64
 	cancelRequested bool
+	usesPTY         bool
+	ptyRows         uint32
+	ptyCols         uint32
 
 	attached   bool
 	subscriber chan OutputEvent
@@ -207,6 +224,9 @@ func (m *Manager) StartCommand(ownerCN string, spec CommandSpec) (ExecutionView,
 	var cmd *exec.Cmd
 	var commandArgv []string
 	var commandShell string
+	var usePTY bool
+	var ptyRows uint32
+	var ptyCols uint32
 	switch {
 	case spec.Argv != nil:
 		if spec.Argv.Binary == "" {
@@ -226,14 +246,22 @@ func (m *Manager) StartCommand(ownerCN string, spec CommandSpec) (ExecutionView,
 		cmd = exec.Command(shellBin, shellArgs...)
 		commandArgv = append([]string{shellBin}, shellArgs...)
 		commandShell = spec.Shell.Command
+		usePTY = spec.Shell.UsePTY
+		ptyRows = spec.Shell.PTYRows
+		ptyCols = spec.Shell.PTYCols
 	default:
 		return ExecutionView{}, errors.New("either argv or shell command must be provided")
 	}
-	return m.start(ownerCN, KindCommand, commandArgv, commandShell, cmd)
+	return m.start(ownerCN, KindCommand, commandArgv, commandShell, usePTY, ptyRows, ptyCols, cmd)
 }
 
 // StartShell starts a persistent shell session for later attach operations.
 func (m *Manager) StartShell(ownerCN, shellBinary string, shellArgs []string) (ExecutionView, error) {
+	return m.StartShellWithOptions(ownerCN, shellBinary, shellArgs, false, 0, 0)
+}
+
+// StartShellWithOptions starts a persistent shell session with optional PTY backing.
+func (m *Manager) StartShellWithOptions(ownerCN, shellBinary string, shellArgs []string, usePTY bool, ptyRows, ptyCols uint32) (ExecutionView, error) {
 	if ownerCN == "" {
 		return ExecutionView{}, errors.New("owner CN is required")
 	}
@@ -243,25 +271,43 @@ func (m *Manager) StartShell(ownerCN, shellBinary string, shellArgs []string) (E
 	}
 	cmd := exec.Command(shellBinary, shellArgs...)
 	commandArgv := append([]string{shellBinary}, shellArgs...)
-	return m.start(ownerCN, KindShell, commandArgv, "", cmd)
+	return m.start(ownerCN, KindShell, commandArgv, "", usePTY, ptyRows, ptyCols, cmd)
 }
 
-func (m *Manager) start(ownerCN string, kind Kind, commandArgv []string, commandShell string, cmd *exec.Cmd) (ExecutionView, error) {
+func (m *Manager) start(ownerCN string, kind Kind, commandArgv []string, commandShell string, usePTY bool, ptyRows, ptyCols uint32, cmd *exec.Cmd) (ExecutionView, error) {
 	id, err := newExecutionID()
 	if err != nil {
 		return ExecutionView{}, err
 	}
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return ExecutionView{}, err
+	if !usePTY {
+		ptyRows = 0
+		ptyCols = 0
 	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return ExecutionView{}, err
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return ExecutionView{}, err
+
+	var stdin io.WriteCloser
+	var stdout io.ReadCloser
+	var stderr io.ReadCloser
+	var ptyReader io.ReadCloser
+	var ptyRW platform.PTY
+	if usePTY {
+		switch kind {
+		case KindCommand, KindShell:
+		default:
+			return ExecutionView{}, errors.New("pty is only supported for shell-based executions")
+		}
+	} else {
+		stdin, err = cmd.StdinPipe()
+		if err != nil {
+			return ExecutionView{}, err
+		}
+		stdout, err = cmd.StdoutPipe()
+		if err != nil {
+			return ExecutionView{}, err
+		}
+		stderr, err = cmd.StderrPipe()
+		if err != nil {
+			return ExecutionView{}, err
+		}
 	}
 
 	execState := &managedExecution{
@@ -274,11 +320,34 @@ func (m *Manager) start(ownerCN string, kind Kind, commandArgv []string, command
 		startedAt:    time.Now().UTC(),
 		cmd:          cmd,
 		stdin:        stdin,
+		pty:          ptyRW,
+		usesPTY:      usePTY,
+		ptyRows:      ptyRows,
+		ptyCols:      ptyCols,
 	}
 	if err := m.store.CreateJob(toHistoryJob(execState.snapshot())); err != nil {
 		return ExecutionView{}, err
 	}
-	if err := cmd.Start(); err != nil {
+	if usePTY {
+		ptyProc, err := platform.StartProcessWithPTY(cmd, uint16(ptyRows), uint16(ptyCols))
+		if err != nil {
+			now := time.Now().UTC()
+			exitCode := int32(-1)
+			execState.state = StateFailedToStart
+			execState.endedAt = &now
+			execState.exitCode = &exitCode
+			_ = m.store.CompleteJob(execState.id, stateToDB(execState.state), now, execState.exitCode, "", err.Error())
+			if errors.Is(err, platform.ErrPTYUnsupported) {
+				return ExecutionView{}, ErrPTYUnsupported
+			}
+			return ExecutionView{}, err
+		}
+		ptyRW = ptyProc.PTY
+		ptyReader = io.NopCloser(ptyProc.PTY)
+		execState.pty = ptyProc.PTY
+		execState.process = ptyProc.Process
+		execState.waitFunc = ptyProc.Wait
+	} else if err := cmd.Start(); err != nil {
 		now := time.Now().UTC()
 		exitCode := int32(-1)
 		execState.state = StateFailedToStart
@@ -286,8 +355,32 @@ func (m *Manager) start(ownerCN string, kind Kind, commandArgv []string, command
 		execState.exitCode = &exitCode
 		_ = m.store.CompleteJob(execState.id, stateToDB(execState.state), now, execState.exitCode, "", err.Error())
 		return ExecutionView{}, err
+	} else {
+		execState.process = cmd.Process
+		execState.waitFunc = func() (int32, string, error) {
+			err := cmd.Wait()
+			return int32(cmd.ProcessState.ExitCode()), platform.ExitSignal(cmd.ProcessState), err
+		}
 	}
-	execState.pid = int64(cmd.Process.Pid)
+	if usePTY && execState.process == nil {
+		now := time.Now().UTC()
+		exitCode := int32(-1)
+		execState.state = StateFailedToStart
+		execState.endedAt = &now
+		execState.exitCode = &exitCode
+		_ = m.store.CompleteJob(execState.id, stateToDB(execState.state), now, execState.exitCode, "", "pty-backed process did not start")
+		return ExecutionView{}, errors.New("pty-backed process did not start")
+	}
+	if !usePTY && cmd.Process == nil {
+		now := time.Now().UTC()
+		exitCode := int32(-1)
+		execState.state = StateFailedToStart
+		execState.endedAt = &now
+		execState.exitCode = &exitCode
+		_ = m.store.CompleteJob(execState.id, stateToDB(execState.state), now, execState.exitCode, "", "process did not start")
+		return ExecutionView{}, errors.New("process did not start")
+	}
+	execState.pid = int64(execState.process.Pid)
 	if err := m.store.UpdateJobProcess(execState.id, execState.pid); err != nil {
 		return ExecutionView{}, err
 	}
@@ -296,8 +389,12 @@ func (m *Manager) start(ownerCN string, kind Kind, commandArgv []string, command
 	m.mu.Unlock()
 	_ = m.audit.Write("execution.start", execState.snapshot())
 
-	go m.captureOutput(execState, stdout, SourceStdout)
-	go m.captureOutput(execState, stderr, SourceStderr)
+	if usePTY {
+		go m.captureOutput(execState, ptyReader, SourceStdout)
+	} else {
+		go m.captureOutput(execState, stdout, SourceStdout)
+		go m.captureOutput(execState, stderr, SourceStderr)
+	}
 	go m.waitForExit(execState)
 
 	return execState.snapshot(), nil
@@ -477,7 +574,7 @@ func (m *Manager) Cancel(executionID, ownerCN string, grace time.Duration) (Exec
 	}
 	e.mu.Lock()
 	e.cancelRequested = true
-	proc := e.cmd.Process
+	proc := e.process
 	e.mu.Unlock()
 	if grace <= 0 {
 		grace = m.defaultGracePeriod
@@ -496,6 +593,20 @@ func (m *Manager) WriteStdin(executionID, ownerCN string, data []byte, eof bool)
 	}
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	if e.pty != nil {
+		if len(data) > 0 {
+			if _, err := e.pty.Write(data); err != nil {
+				return err
+			}
+		}
+		if eof {
+			// PTY sessions treat EOF as an interactive EOT byte instead of closing the master side.
+			if _, err := e.pty.Write([]byte{0x04}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 	if e.stdin == nil {
 		return errors.New("stdin is not available")
 	}
@@ -511,6 +622,28 @@ func (m *Manager) WriteStdin(executionID, ownerCN string, data []byte, eof bool)
 		e.stdin = nil
 	}
 	return nil
+}
+
+// ResizePTY updates the terminal size for one PTY-backed execution.
+func (m *Manager) ResizePTY(executionID, ownerCN string, rows, cols uint32) error {
+	if rows == 0 || cols == 0 {
+		return nil
+	}
+	e, err := m.getOwned(executionID, ownerCN)
+	if err != nil {
+		return err
+	}
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.pty == nil || !e.usesPTY {
+		return ErrPTYRequired
+	}
+	if err := e.pty.Resize(uint16(rows), uint16(cols)); err != nil {
+		return err
+	}
+	e.ptyRows = rows
+	e.ptyCols = cols
+	return m.store.UpdatePTYSize(executionID, rows, cols)
 }
 
 // Attach reserves the single live subscriber channel for one execution.
@@ -646,10 +779,11 @@ func (m *Manager) appendOutput(e *managedExecution, source Source, data []byte) 
 }
 
 func (m *Manager) waitForExit(e *managedExecution) {
-	_ = e.cmd.Wait()
+	exitCode, signal, err := e.waitFunc()
+	if err != nil && exitCode == 0 {
+		exitCode = -1
+	}
 	now := time.Now().UTC()
-	exitCode := int32(e.cmd.ProcessState.ExitCode())
-	signal := platform.ExitSignal(e.cmd.ProcessState)
 
 	e.mu.Lock()
 	if e.cancelRequested {
@@ -663,6 +797,10 @@ func (m *Manager) waitForExit(e *managedExecution) {
 	if e.stdin != nil {
 		_ = e.stdin.Close()
 		e.stdin = nil
+	}
+	if e.pty != nil {
+		_ = e.pty.Close()
+		e.pty = nil
 	}
 	snapshot := e.snapshotLocked()
 	e.mu.Unlock()
@@ -714,6 +852,9 @@ func (e *managedExecution) snapshotLocked() ExecutionView {
 		ExitCode:        e.exitCode,
 		Signal:          e.signal,
 		OutputSizeBytes: e.outputSizeBytes,
+		UsesPTY:         e.usesPTY,
+		PTYRows:         e.ptyRows,
+		PTYCols:         e.ptyCols,
 	}
 	return view
 }
@@ -788,6 +929,9 @@ func toHistoryJob(view ExecutionView) history.Job {
 		TransferProgressBytes: view.TransferProgressBytes,
 		TransferTotalBytes:    view.TransferTotalBytes,
 		ErrorMessage:          view.ErrorMessage,
+		UsesPTY:               view.UsesPTY,
+		PTYRows:               view.PTYRows,
+		PTYCols:               view.PTYCols,
 	}
 }
 
@@ -809,6 +953,9 @@ func fromHistoryJob(job history.Job) ExecutionView {
 		TransferProgressBytes: job.TransferProgressBytes,
 		TransferTotalBytes:    job.TransferTotalBytes,
 		ErrorMessage:          job.ErrorMessage,
+		UsesPTY:               job.UsesPTY,
+		PTYRows:               job.PTYRows,
+		PTYCols:               job.PTYCols,
 	}
 	switch view.Kind {
 	case KindUpload:

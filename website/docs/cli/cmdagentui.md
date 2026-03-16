@@ -50,6 +50,7 @@ The active section changes from the navigation panel. `tab` and `shift+tab` are 
 - starting argv commands
 - starting shell commands
 - starting persistent shell sessions
+- enabling PTY mode for shell commands and shell sessions
 - uploading files
 - downloading files
 - downloading zip archives
@@ -81,6 +82,7 @@ Panel behavior:
 - navigation focused: `j/k` switches between `Executions`, `Transfers`, `New Command`, `New Transfer`, and `Connection`
 - main panel focused on a list: `j/k` moves through list items
 - main panel focused on a form: `tab` and `shift+tab` move between form fields; when the last field is reached, `tab` moves to the next pane, and when the first field is reached, `shift+tab` moves to the previous pane
+- the shell and session forms include a `Use PTY` field
 - detail panel focused: `j/k` scrolls detail and output content
 
 History cleanup behavior:
@@ -100,6 +102,15 @@ ctrl+d     send EOF
 ```
 
 This mode is intended for raw-pipe interaction. It is not a full terminal emulator or PTY client.
+
+PTY notes:
+
+- PTY can be requested from the `New Command` shell and session forms
+- `cmdagentui` sends its current dimensions when attaching to a PTY-backed execution and updates the remote PTY as the terminal is resized
+- PTY is useful when you want prompt-oriented shell behavior
+- PTY-backed output is terminal-style and effectively merged into one stream
+- PTY mode is implemented on Unix-like platforms and on Windows through ConPTY
+- `cmdagentui` is still not a full terminal emulator, so full-screen terminal applications can still render imperfectly even with PTY enabled
 
 ## Recommended workflow
 

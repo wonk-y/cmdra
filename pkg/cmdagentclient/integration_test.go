@@ -152,6 +152,73 @@ func TestClientAttachShellSession(t *testing.T) {
 	}
 }
 
+func TestClientShellExecutionWithPTY(t *testing.T) {
+	requireUnixCommands(t)
+	env := newIntegrationEnv(t)
+
+	execMeta, err := env.clientA.StartShellCommandWithOptions(context.Background(), "/bin/sh", "printf 'pty-shell\\n'", ShellOptions{UsePTY: true})
+	if err != nil {
+		t.Fatalf("start shell command with PTY: %v", err)
+	}
+	finished := waitForCompletion(t, env.clientA, execMeta.GetExecutionId())
+	if !finished.GetUsesPty() {
+		t.Fatal("expected uses_pty metadata to be true")
+	}
+	details, err := env.clientA.GetExecutionWithOutput(context.Background(), execMeta.GetExecutionId(), false)
+	if err != nil {
+		t.Fatalf("get PTY execution with output: %v", err)
+	}
+	var output bytes.Buffer
+	for _, chunk := range details.Output {
+		if !chunk.GetEof() {
+			output.Write(chunk.GetData())
+		}
+	}
+	if !bytes.Contains(output.Bytes(), []byte("pty-shell")) {
+		t.Fatalf("unexpected PTY output: %q", output.String())
+	}
+}
+
+func TestClientShellSessionPTYResize(t *testing.T) {
+	requireUnixCommands(t)
+	env := newIntegrationEnv(t)
+
+	execMeta, err := env.clientA.StartShellSessionWithOptions(context.Background(), "/bin/sh", nil, ShellOptions{
+		UsePTY:  true,
+		PTYRows: 24,
+		PTYCols: 80,
+	})
+	if err != nil {
+		t.Fatalf("start shell session with PTY: %v", err)
+	}
+	if !execMeta.GetUsesPty() || execMeta.GetPtyRows() != 24 || execMeta.GetPtyCols() != 80 {
+		t.Fatalf("unexpected initial PTY metadata: %+v", execMeta)
+	}
+
+	session, err := env.clientA.Attach(context.Background(), execMeta.GetExecutionId(), true, 0)
+	if err != nil {
+		t.Fatalf("attach PTY session: %v", err)
+	}
+	defer func() { _ = session.CloseSend() }()
+	ack, err := session.Recv()
+	if err != nil {
+		t.Fatalf("recv PTY session ack: %v", err)
+	}
+	if ack.GetAck() == nil || ack.GetAck().GetExecution().GetPtyRows() != 24 || ack.GetAck().GetExecution().GetPtyCols() != 80 {
+		t.Fatalf("unexpected PTY attach ack: %+v", ack)
+	}
+
+	if err := session.ResizePTY(40, 100); err != nil {
+		t.Fatalf("resize PTY: %v", err)
+	}
+	waitForPTYSize(t, env.clientA, execMeta.GetExecutionId(), 40, 100)
+
+	if err := session.SendStdin([]byte("exit\n"), true); err != nil {
+		t.Fatalf("send exit to PTY session: %v", err)
+	}
+	waitForCompletion(t, env.clientA, execMeta.GetExecutionId())
+}
+
 func TestClientAsyncShellSessionAttach(t *testing.T) {
 	requireUnixCommands(t)
 	env := newIntegrationEnv(t)
@@ -189,6 +256,23 @@ func TestClientAsyncShellSessionAttach(t *testing.T) {
 			return
 		}
 	}
+}
+
+func waitForPTYSize(t *testing.T, client *Client, executionID string, rows, cols uint32) {
+	t.Helper()
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		execMeta, err := client.GetExecution(context.Background(), executionID)
+		if err == nil && execMeta.GetPtyRows() == rows && execMeta.GetPtyCols() == cols {
+			return
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	execMeta, err := client.GetExecution(context.Background(), executionID)
+	if err != nil {
+		t.Fatalf("get execution after waiting for PTY resize: %v", err)
+	}
+	t.Fatalf("expected PTY size %dx%d, got %dx%d", rows, cols, execMeta.GetPtyRows(), execMeta.GetPtyCols())
 }
 
 func TestClientFileTransfersAndAsync(t *testing.T) {

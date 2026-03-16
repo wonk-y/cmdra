@@ -57,6 +57,13 @@ class AttachSession:
             )
         )
 
+    def resize_pty(self, rows: int, cols: int) -> None:
+        self._requests.put(
+            agent_pb2.AttachRequest(
+                control=agent_pb2.AttachControl(pty_rows=rows, pty_cols=cols),
+            )
+        )
+
     def recv(self) -> agent_pb2.AttachEvent:
         return next(self._call)
 
@@ -124,10 +131,23 @@ class Client:
     ) -> concurrent.futures.Future[agent_pb2.Execution]:
         return self._executor.submit(self.start_argv, binary, list(args or []))
 
-    def start_shell_command(self, command: str, shell_binary: str = "") -> agent_pb2.Execution:
+    def start_shell_command(
+        self,
+        command: str,
+        shell_binary: str = "",
+        use_pty: bool = False,
+        pty_rows: int = 0,
+        pty_cols: int = 0,
+    ) -> agent_pb2.Execution:
         response = self._stub.StartCommand(
             agent_pb2.StartCommandRequest(
-                shell=agent_pb2.ShellCommand(shell_binary=shell_binary, command=command)
+                shell=agent_pb2.ShellCommand(
+                    shell_binary=shell_binary,
+                    command=command,
+                    use_pty=use_pty,
+                    pty_rows=pty_rows,
+                    pty_cols=pty_cols,
+                )
             )
         )
         return response.execution
@@ -136,12 +156,28 @@ class Client:
         self,
         command: str,
         shell_binary: str = "",
+        use_pty: bool = False,
+        pty_rows: int = 0,
+        pty_cols: int = 0,
     ) -> concurrent.futures.Future[agent_pb2.Execution]:
-        return self._executor.submit(self.start_shell_command, command, shell_binary)
+        return self._executor.submit(self.start_shell_command, command, shell_binary, use_pty, pty_rows, pty_cols)
 
-    def start_shell_session(self, shell_binary: str, shell_args: Optional[Sequence[str]] = None) -> agent_pb2.Execution:
+    def start_shell_session(
+        self,
+        shell_binary: str,
+        shell_args: Optional[Sequence[str]] = None,
+        use_pty: bool = False,
+        pty_rows: int = 0,
+        pty_cols: int = 0,
+    ) -> agent_pb2.Execution:
         response = self._stub.StartShell(
-            agent_pb2.StartShellRequest(shell_binary=shell_binary, shell_args=list(shell_args or []))
+            agent_pb2.StartShellRequest(
+                shell_binary=shell_binary,
+                shell_args=list(shell_args or []),
+                use_pty=use_pty,
+                pty_rows=pty_rows,
+                pty_cols=pty_cols,
+            )
         )
         return response.execution
 
@@ -149,8 +185,11 @@ class Client:
         self,
         shell_binary: str,
         shell_args: Optional[Sequence[str]] = None,
+        use_pty: bool = False,
+        pty_rows: int = 0,
+        pty_cols: int = 0,
     ) -> concurrent.futures.Future[agent_pb2.Execution]:
-        return self._executor.submit(self.start_shell_session, shell_binary, list(shell_args or []))
+        return self._executor.submit(self.start_shell_session, shell_binary, list(shell_args or []), use_pty, pty_rows, pty_cols)
 
     def get_execution(self, execution_id: str) -> agent_pb2.Execution:
         response = self._stub.GetExecution(agent_pb2.GetExecutionRequest(execution_id=execution_id))
@@ -328,6 +367,10 @@ def format_execution(execution: agent_pb2.Execution) -> str:
         lines.append(f"Command Argv: {' '.join(execution.command_argv)}")
     if execution.command_shell:
         lines.append(f"Command Shell: {execution.command_shell}")
+    if execution.uses_pty:
+        lines.append("Uses PTY: True")
+        if execution.pty_rows and execution.pty_cols:
+            lines.append(f"PTY Size: {execution.pty_rows}x{execution.pty_cols}")
     if execution.last_upload_local_path:
         lines.append(f"Upload Local Path: {execution.last_upload_local_path}")
     if execution.last_upload_remote_path:

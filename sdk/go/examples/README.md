@@ -18,7 +18,9 @@ export CMDAGENT_KEY=dev/certs/client-a.key
 
 go run ./sdk/go/examples/start_argv -- /bin/echo hello
 go run ./sdk/go/examples/start_shell --command "printf 'hello\n'"
+go run ./sdk/go/examples/start_shell --pty --command "printf 'hello from pty\n'"
 go run ./sdk/go/examples/start_session --shell /bin/sh
+go run ./sdk/go/examples/start_session --shell /bin/sh --pty
 go run ./sdk/go/examples/list_executions
 go run ./sdk/go/examples/get_execution --id exec-123
 go run ./sdk/go/examples/upload_file --local ./README.md --remote /tmp/README.md
@@ -32,3 +34,5 @@ History management is also available through the Go SDK client:
 err := client.DeleteExecution(ctx, "exec-123")
 result, err := client.ClearHistory(ctx)
 ```
+
+PTY mode is available for shell commands and shell sessions on Unix-like platforms and on Windows through ConPTY.

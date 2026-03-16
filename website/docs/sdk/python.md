@@ -37,6 +37,7 @@ client = Client(
 execution = client.start_argv("/bin/echo", ["hello"])
 execution = client.start_shell_command("printf 'hello\\n'", shell_binary="/bin/sh")
 execution = client.start_shell_session("/bin/sh")
+execution = client.start_shell_session("/bin/sh", use_pty=True)
 ```
 
 ## Asynchronous helpers
@@ -54,6 +55,18 @@ Available async helpers:
 - `upload_file_async`
 - `download_file_async`
 - `download_archive_async`
+
+## Optional PTY mode
+
+Shell-oriented Python client methods accept `use_pty=True` plus optional `pty_rows` and `pty_cols`:
+
+```python
+execution = client.start_shell_command("printf 'hello from pty\\n'", shell_binary="/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+session = client.start_shell_session("/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+session.resize_pty(40, 100)
+```
+
+PTY mode is implemented on Unix-like platforms and on Windows through ConPTY. PTY-backed output is terminal-style and effectively merged into one stream.
 
 ## List and inspect executions
 

@@ -36,6 +36,8 @@ print(execution.execution_id)
 client.delete_execution(execution.execution_id)
 result = client.clear_history()
 print(result.deleted_count, result.skipped_running_count)
+pty_execution = client.start_shell_session("/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+print(pty_execution.uses_pty)
 client.close()
 ```
 
@@ -103,6 +105,23 @@ Clear Finished History
 ```
 
 `Delete Execution` only removes finished executions or transfers. `Clear History` removes finished history for the authenticated client identity and leaves running items in place.
+
+PTY-oriented Robot keywords are also available:
+
+- `Start Shell Command With PTY`
+- `Start Shell Command Async With PTY`
+- `Start Shell Session With PTY`
+- `Start Shell Session Async With PTY`
+
+Shell methods also accept `use_pty=True` plus optional `pty_rows` and `pty_cols`:
+
+```python
+execution = client.start_shell_command("printf 'hello from pty\\n'", shell_binary="/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+session = client.start_shell_session("/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+session.resize_pty(40, 100)
+```
+
+PTY mode is implemented for shell commands and shell sessions on Unix-like platforms and on Windows through ConPTY.
 
 ## Ansible
 

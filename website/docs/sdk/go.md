@@ -41,6 +41,7 @@ func main() {
 execution, err := client.StartArgv(ctx, "/bin/echo", []string{"hello"})
 execution, err := client.StartShellCommand(ctx, "/bin/sh", "printf 'hello\\n'")
 execution, err := client.StartShellSession(ctx, "/bin/sh", nil)
+execution, err := client.StartShellCommandWithOptions(ctx, "/bin/sh", "printf 'hello from pty\\n'", cmdagentclient.ShellOptions{UsePTY: true})
 ```
 
 ## Asynchronous start helpers
@@ -58,6 +59,22 @@ Available async helpers:
 - `UploadFileAsync`
 - `DownloadFileAsync`
 - `DownloadArchiveAsync`
+
+## Optional PTY mode
+
+Use `ShellOptions{UsePTY: true}` when starting shell commands or shell sessions that should behave like a terminal-attached process.
+
+```go
+execution, err := client.StartShellSessionWithOptions(ctx, "/bin/sh", nil, cmdagentclient.ShellOptions{
+  UsePTY:  true,
+  PTYRows: 24,
+  PTYCols: 80,
+})
+session, err := client.Attach(ctx, execution.GetExecutionId(), true, 0)
+err = session.ResizePTY(40, 100)
+```
+
+PTY mode is implemented on Unix-like platforms and on Windows through ConPTY. PTY-backed output is terminal-style and effectively merged into one stream.
 
 ## List and inspect executions
 

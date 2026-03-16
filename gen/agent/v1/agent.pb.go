@@ -289,6 +289,9 @@ type ShellCommand struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ShellBinary   string                 `protobuf:"bytes,1,opt,name=shell_binary,json=shellBinary,proto3" json:"shell_binary,omitempty"`
 	Command       string                 `protobuf:"bytes,2,opt,name=command,proto3" json:"command,omitempty"`
+	UsePty        bool                   `protobuf:"varint,3,opt,name=use_pty,json=usePty,proto3" json:"use_pty,omitempty"`
+	PtyRows       uint32                 `protobuf:"varint,4,opt,name=pty_rows,json=ptyRows,proto3" json:"pty_rows,omitempty"`
+	PtyCols       uint32                 `protobuf:"varint,5,opt,name=pty_cols,json=ptyCols,proto3" json:"pty_cols,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -335,6 +338,27 @@ func (x *ShellCommand) GetCommand() string {
 		return x.Command
 	}
 	return ""
+}
+
+func (x *ShellCommand) GetUsePty() bool {
+	if x != nil {
+		return x.UsePty
+	}
+	return false
+}
+
+func (x *ShellCommand) GetPtyRows() uint32 {
+	if x != nil {
+		return x.PtyRows
+	}
+	return 0
+}
+
+func (x *ShellCommand) GetPtyCols() uint32 {
+	if x != nil {
+		return x.PtyCols
+	}
+	return 0
 }
 
 type StartCommandRequest struct {
@@ -467,6 +491,9 @@ type StartShellRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ShellBinary   string                 `protobuf:"bytes,1,opt,name=shell_binary,json=shellBinary,proto3" json:"shell_binary,omitempty"`
 	ShellArgs     []string               `protobuf:"bytes,2,rep,name=shell_args,json=shellArgs,proto3" json:"shell_args,omitempty"`
+	UsePty        bool                   `protobuf:"varint,3,opt,name=use_pty,json=usePty,proto3" json:"use_pty,omitempty"`
+	PtyRows       uint32                 `protobuf:"varint,4,opt,name=pty_rows,json=ptyRows,proto3" json:"pty_rows,omitempty"`
+	PtyCols       uint32                 `protobuf:"varint,5,opt,name=pty_cols,json=ptyCols,proto3" json:"pty_cols,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -513,6 +540,27 @@ func (x *StartShellRequest) GetShellArgs() []string {
 		return x.ShellArgs
 	}
 	return nil
+}
+
+func (x *StartShellRequest) GetUsePty() bool {
+	if x != nil {
+		return x.UsePty
+	}
+	return false
+}
+
+func (x *StartShellRequest) GetPtyRows() uint32 {
+	if x != nil {
+		return x.PtyRows
+	}
+	return 0
+}
+
+func (x *StartShellRequest) GetPtyCols() uint32 {
+	if x != nil {
+		return x.PtyCols
+	}
+	return 0
 }
 
 type StartShellResponse struct {
@@ -583,6 +631,9 @@ type Execution struct {
 	TransferTotalBytes     int64                  `protobuf:"varint,20,opt,name=transfer_total_bytes,json=transferTotalBytes,proto3" json:"transfer_total_bytes,omitempty"`
 	TransferDirection      string                 `protobuf:"bytes,21,opt,name=transfer_direction,json=transferDirection,proto3" json:"transfer_direction,omitempty"`
 	ErrorMessage           string                 `protobuf:"bytes,22,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	UsesPty                bool                   `protobuf:"varint,23,opt,name=uses_pty,json=usesPty,proto3" json:"uses_pty,omitempty"`
+	PtyRows                uint32                 `protobuf:"varint,24,opt,name=pty_rows,json=ptyRows,proto3" json:"pty_rows,omitempty"`
+	PtyCols                uint32                 `protobuf:"varint,25,opt,name=pty_cols,json=ptyCols,proto3" json:"pty_cols,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -769,6 +820,27 @@ func (x *Execution) GetErrorMessage() string {
 		return x.ErrorMessage
 	}
 	return ""
+}
+
+func (x *Execution) GetUsesPty() bool {
+	if x != nil {
+		return x.UsesPty
+	}
+	return false
+}
+
+func (x *Execution) GetPtyRows() uint32 {
+	if x != nil {
+		return x.PtyRows
+	}
+	return 0
+}
+
+func (x *Execution) GetPtyCols() uint32 {
+	if x != nil {
+		return x.PtyCols
+	}
+	return 0
 }
 
 type GetExecutionRequest struct {
@@ -1487,6 +1559,8 @@ func (x *StdinChunk) GetEof() bool {
 type AttachControl struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	CancelExecution bool                   `protobuf:"varint,1,opt,name=cancel_execution,json=cancelExecution,proto3" json:"cancel_execution,omitempty"`
+	PtyRows         uint32                 `protobuf:"varint,2,opt,name=pty_rows,json=ptyRows,proto3" json:"pty_rows,omitempty"`
+	PtyCols         uint32                 `protobuf:"varint,3,opt,name=pty_cols,json=ptyCols,proto3" json:"pty_cols,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1526,6 +1600,20 @@ func (x *AttachControl) GetCancelExecution() bool {
 		return x.CancelExecution
 	}
 	return false
+}
+
+func (x *AttachControl) GetPtyRows() uint32 {
+	if x != nil {
+		return x.PtyRows
+	}
+	return 0
+}
+
+func (x *AttachControl) GetPtyCols() uint32 {
+	if x != nil {
+		return x.PtyCols
+	}
+	return 0
 }
 
 type AttachRequest struct {
@@ -2293,22 +2381,28 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x14agent/v1/agent.proto\x12\bagent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"9\n" +
 	"\vArgvCommand\x12\x16\n" +
 	"\x06binary\x18\x01 \x01(\tR\x06binary\x12\x12\n" +
-	"\x04args\x18\x02 \x03(\tR\x04args\"K\n" +
+	"\x04args\x18\x02 \x03(\tR\x04args\"\x9a\x01\n" +
 	"\fShellCommand\x12!\n" +
 	"\fshell_binary\x18\x01 \x01(\tR\vshellBinary\x12\x18\n" +
-	"\acommand\x18\x02 \x01(\tR\acommand\"\x82\x01\n" +
+	"\acommand\x18\x02 \x01(\tR\acommand\x12\x17\n" +
+	"\ause_pty\x18\x03 \x01(\bR\x06usePty\x12\x19\n" +
+	"\bpty_rows\x18\x04 \x01(\rR\aptyRows\x12\x19\n" +
+	"\bpty_cols\x18\x05 \x01(\rR\aptyCols\"\x82\x01\n" +
 	"\x13StartCommandRequest\x12+\n" +
 	"\x04argv\x18\x01 \x01(\v2\x15.agent.v1.ArgvCommandH\x00R\x04argv\x12.\n" +
 	"\x05shell\x18\x02 \x01(\v2\x16.agent.v1.ShellCommandH\x00R\x05shellB\x0e\n" +
 	"\fcommand_spec\"I\n" +
 	"\x14StartCommandResponse\x121\n" +
-	"\texecution\x18\x01 \x01(\v2\x13.agent.v1.ExecutionR\texecution\"U\n" +
+	"\texecution\x18\x01 \x01(\v2\x13.agent.v1.ExecutionR\texecution\"\xa4\x01\n" +
 	"\x11StartShellRequest\x12!\n" +
 	"\fshell_binary\x18\x01 \x01(\tR\vshellBinary\x12\x1d\n" +
 	"\n" +
-	"shell_args\x18\x02 \x03(\tR\tshellArgs\"G\n" +
+	"shell_args\x18\x02 \x03(\tR\tshellArgs\x12\x17\n" +
+	"\ause_pty\x18\x03 \x01(\bR\x06usePty\x12\x19\n" +
+	"\bpty_rows\x18\x04 \x01(\rR\aptyRows\x12\x19\n" +
+	"\bpty_cols\x18\x05 \x01(\rR\aptyCols\"G\n" +
 	"\x12StartShellResponse\x121\n" +
-	"\texecution\x18\x01 \x01(\v2\x13.agent.v1.ExecutionR\texecution\"\xe3\a\n" +
+	"\texecution\x18\x01 \x01(\v2\x13.agent.v1.ExecutionR\texecution\"\xb4\b\n" +
 	"\tExecution\x12!\n" +
 	"\fexecution_id\x18\x01 \x01(\tR\vexecutionId\x12+\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\x17.agent.v1.ExecutionKindR\x04kind\x12.\n" +
@@ -2333,7 +2427,10 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x17transfer_progress_bytes\x18\x13 \x01(\x03R\x15transferProgressBytes\x120\n" +
 	"\x14transfer_total_bytes\x18\x14 \x01(\x03R\x12transferTotalBytes\x12-\n" +
 	"\x12transfer_direction\x18\x15 \x01(\tR\x11transferDirection\x12#\n" +
-	"\rerror_message\x18\x16 \x01(\tR\ferrorMessage\"8\n" +
+	"\rerror_message\x18\x16 \x01(\tR\ferrorMessage\x12\x19\n" +
+	"\buses_pty\x18\x17 \x01(\bR\ausesPty\x12\x19\n" +
+	"\bpty_rows\x18\x18 \x01(\rR\aptyRows\x12\x19\n" +
+	"\bpty_cols\x18\x19 \x01(\rR\aptyCols\"8\n" +
 	"\x13GetExecutionRequest\x12!\n" +
 	"\fexecution_id\x18\x01 \x01(\tR\vexecutionId\"I\n" +
 	"\x14GetExecutionResponse\x121\n" +
@@ -2377,9 +2474,11 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
 	"StdinChunk\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\x12\x10\n" +
-	"\x03eof\x18\x02 \x01(\bR\x03eof\":\n" +
+	"\x03eof\x18\x02 \x01(\bR\x03eof\"p\n" +
 	"\rAttachControl\x12)\n" +
-	"\x10cancel_execution\x18\x01 \x01(\bR\x0fcancelExecution\"\xac\x01\n" +
+	"\x10cancel_execution\x18\x01 \x01(\bR\x0fcancelExecution\x12\x19\n" +
+	"\bpty_rows\x18\x02 \x01(\rR\aptyRows\x12\x19\n" +
+	"\bpty_cols\x18\x03 \x01(\rR\aptyCols\"\xac\x01\n" +
 	"\rAttachRequest\x12-\n" +
 	"\x05start\x18\x01 \x01(\v2\x15.agent.v1.AttachStartH\x00R\x05start\x12,\n" +
 	"\x05stdin\x18\x02 \x01(\v2\x14.agent.v1.StdinChunkH\x00R\x05stdin\x123\n" +

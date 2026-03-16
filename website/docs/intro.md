@@ -22,6 +22,7 @@ Use this site to:
 - argv command execution
 - shell command execution
 - persistent shell sessions with attach/reconnect
+- optional PTY-backed shell commands and shell sessions, including Windows ConPTY support
 - stdout and stderr replay from persisted history
 - file upload, file download, and archive download
 - execution and transfer metadata retention in SQLite under `-data-dir`

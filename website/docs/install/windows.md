@@ -70,3 +70,13 @@ The installed service uses the native Windows Service Control Manager execution 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\service-smoke-windows.ps1
 ```
+
+## Smoke-test Windows PTY and ConPTY
+
+Use the Windows PTY smoke helper when you want to validate PTY-backed shell command execution and PTY-backed attach behavior on a real Windows host:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows.ps1
+```
+
+The script starts a foreground daemon with the repository's development certificates, runs a PTY-backed `cmd.exe` command, then starts a PTY-backed `cmd.exe` session and verifies that `cmdagentctl attach` can drive it.

@@ -14,6 +14,9 @@ message ArgvCommand {
 message ShellCommand {
   string shell_binary = 1;
   string command = 2;
+  bool use_pty = 3;
+  uint32 pty_rows = 4;
+  uint32 pty_cols = 5;
 }
 
 message StartCommandRequest {
@@ -30,6 +33,9 @@ message StartCommandResponse {
 message StartShellRequest {
   string shell_binary = 1;
   repeated string shell_args = 2;
+  bool use_pty = 3;
+  uint32 pty_rows = 4;
+  uint32 pty_cols = 5;
 }
 
 message StartShellResponse {
@@ -83,6 +89,9 @@ message Execution {
   int64 transfer_total_bytes = 20;
   string transfer_direction = 21;
   string error_message = 22;
+  bool uses_pty = 23;
+  uint32 pty_rows = 24;
+  uint32 pty_cols = 25;
 }
 
 message GetExecutionRequest {
@@ -155,6 +164,8 @@ message StdinChunk {
 
 message AttachControl {
   bool cancel_execution = 1;
+  uint32 pty_rows = 2;
+  uint32 pty_cols = 3;
 }
 
 message AttachRequest {

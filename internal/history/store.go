@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -36,6 +37,9 @@ type Job struct {
 	TransferProgressBytes int64
 	TransferTotalBytes    *int64
 	ErrorMessage          string
+	UsesPTY               bool
+	PTYRows               uint32
+	PTYCols               uint32
 }
 
 // OutputRecord is one persisted output chunk from a job stream.
@@ -107,7 +111,10 @@ CREATE TABLE IF NOT EXISTS jobs (
   transfer_direction TEXT NOT NULL DEFAULT '',
   transfer_progress_bytes INTEGER NOT NULL DEFAULT 0,
   transfer_total_bytes INTEGER,
-  error_message TEXT NOT NULL DEFAULT ''
+  error_message TEXT NOT NULL DEFAULT '',
+  uses_pty INTEGER NOT NULL DEFAULT 0,
+  pty_rows INTEGER NOT NULL DEFAULT 0,
+  pty_cols INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_jobs_owner_started ON jobs(owner_cn, started_at_unix_nano DESC);
 CREATE INDEX IF NOT EXISTS idx_jobs_owner_state ON jobs(owner_cn, state);
@@ -124,7 +131,22 @@ CREATE TABLE IF NOT EXISTS job_output (
 );
 CREATE INDEX IF NOT EXISTS idx_job_output_by_offset ON job_output(job_id, offset_bytes);
 `)
-	return err
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(`ALTER TABLE jobs ADD COLUMN uses_pty INTEGER NOT NULL DEFAULT 0`)
+	if err != nil && !strings.Contains(err.Error(), "duplicate column name") {
+		return err
+	}
+	_, err = s.db.Exec(`ALTER TABLE jobs ADD COLUMN pty_rows INTEGER NOT NULL DEFAULT 0`)
+	if err != nil && !strings.Contains(err.Error(), "duplicate column name") {
+		return err
+	}
+	_, err = s.db.Exec(`ALTER TABLE jobs ADD COLUMN pty_cols INTEGER NOT NULL DEFAULT 0`)
+	if err != nil && !strings.Contains(err.Error(), "duplicate column name") {
+		return err
+	}
+	return nil
 }
 
 // CreateJob inserts a new job row.
@@ -139,8 +161,8 @@ INSERT INTO jobs (
   started_at_unix_nano, ended_at_unix_nano, exit_code, signal,
   output_size_bytes, next_sequence,
   transfer_local_path, transfer_remote_path, transfer_direction,
-  transfer_progress_bytes, transfer_total_bytes, error_message
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)
+  transfer_progress_bytes, transfer_total_bytes, error_message, uses_pty, pty_rows, pty_cols
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
 		job.ID,
 		job.OwnerCN,
@@ -160,6 +182,9 @@ INSERT INTO jobs (
 		job.TransferProgressBytes,
 		toNullInt64(job.TransferTotalBytes),
 		job.ErrorMessage,
+		boolToInt(job.UsesPTY),
+		job.PTYRows,
+		job.PTYCols,
 	)
 	return err
 }
@@ -200,6 +225,22 @@ SET transfer_progress_bytes = ?, transfer_total_bytes = COALESCE(?, transfer_tot
 WHERE id = ?`,
 		progress,
 		toNullInt64(total),
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	return mustAffectOne(result)
+}
+
+// UpdatePTYSize stores the latest PTY dimensions for one job.
+func (s *Store) UpdatePTYSize(id string, rows, cols uint32) error {
+	result, err := s.db.Exec(`
+UPDATE jobs
+SET pty_rows = ?, pty_cols = ?
+WHERE id = ?`,
+		rows,
+		cols,
 		id,
 	)
 	if err != nil {
@@ -300,7 +341,7 @@ SELECT
   started_at_unix_nano, ended_at_unix_nano, exit_code, signal,
   output_size_bytes,
   transfer_local_path, transfer_remote_path, transfer_direction,
-  transfer_progress_bytes, transfer_total_bytes, error_message
+  transfer_progress_bytes, transfer_total_bytes, error_message, uses_pty, pty_rows, pty_cols
 FROM jobs
 WHERE id = ? AND owner_cn = ?
 `, jobID, ownerCN)
@@ -316,7 +357,7 @@ SELECT
   started_at_unix_nano, ended_at_unix_nano, exit_code, signal,
   output_size_bytes,
   transfer_local_path, transfer_remote_path, transfer_direction,
-  transfer_progress_bytes, transfer_total_bytes, error_message
+  transfer_progress_bytes, transfer_total_bytes, error_message, uses_pty, pty_rows, pty_cols
 FROM jobs
 WHERE id = ?
 `, jobID)
@@ -331,7 +372,7 @@ SELECT
   started_at_unix_nano, ended_at_unix_nano, exit_code, signal,
   output_size_bytes,
   transfer_local_path, transfer_remote_path, transfer_direction,
-  transfer_progress_bytes, transfer_total_bytes, error_message
+  transfer_progress_bytes, transfer_total_bytes, error_message, uses_pty, pty_rows, pty_cols
 FROM jobs
 WHERE owner_cn = ?
 `
@@ -367,11 +408,14 @@ func scanJob(s scanner) (Job, error) {
 	var endedAtNanos sql.NullInt64
 	var exitCode sql.NullInt64
 	var totalBytes sql.NullInt64
+	var usesPTY int
+	var ptyRows int64
+	var ptyCols int64
 	if err := s.Scan(
 		&job.ID, &job.OwnerCN, &job.Kind, &job.State, &job.PID, &argvJSON, &job.CommandShell,
 		&startedAtNanos, &endedAtNanos, &exitCode, &job.Signal, &job.OutputSizeBytes,
 		&job.TransferLocalPath, &job.TransferRemotePath, &job.TransferDirection,
-		&job.TransferProgressBytes, &totalBytes, &job.ErrorMessage,
+		&job.TransferProgressBytes, &totalBytes, &job.ErrorMessage, &usesPTY, &ptyRows, &ptyCols,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Job{}, ErrNotFound
@@ -391,6 +435,9 @@ func scanJob(s scanner) (Job, error) {
 		n := totalBytes.Int64
 		job.TransferTotalBytes = &n
 	}
+	job.UsesPTY = usesPTY != 0
+	job.PTYRows = uint32(ptyRows)
+	job.PTYCols = uint32(ptyCols)
 	if err := json.Unmarshal([]byte(argvJSON), &job.CommandArgv); err != nil {
 		return Job{}, fmt.Errorf("decode command argv for job %s: %w", job.ID, err)
 	}
@@ -427,4 +474,11 @@ func mustAffectOne(result sql.Result) error {
 		return ErrNotFound
 	}
 	return nil
+}
+
+func boolToInt(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
 }

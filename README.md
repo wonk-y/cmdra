@@ -5,6 +5,7 @@ CmdAgent is a long-running Go daemon that exposes a gRPC API over mutual TLS for
 - starting argv commands
 - starting shell command strings
 - starting persistent shell sessions and attaching to them
+- optionally running shell commands and shell sessions under a PTY, including Windows ConPTY support
 - replaying stdout/stderr output
 - listing and retrieving execution metadata for running and finished jobs
 - deleting one finished execution or transfer from history
@@ -157,6 +158,8 @@ Examples:
 ```bash
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-argv --binary /bin/echo hello
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-shell --command "printf 'hello\n'"
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-shell --pty --pty-rows 24 --pty-cols 80 --command "printf 'hello from a PTY\n'"
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-session --shell /bin/sh --pty --pty-rows 24 --pty-cols 80
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key get --id exec-123
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key delete --id exec-123
 ./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key clear-history --yes
@@ -166,6 +169,7 @@ Examples:
 
 `get` includes persisted output by internally calling both `GetExecution` and `ReadOutput`.
 `delete` removes one finished execution or transfer from persisted history. `clear-history --yes` removes all finished history for the authenticated identity and reports how many running items were preserved.
+`--pty` is available on `start-shell` and `start-session`. `--pty-rows` and `--pty-cols` set the initial terminal size. `attach` automatically pushes terminal size changes for PTY-backed executions and switches the local terminal into raw mode for PTY sessions. PTY mode merges terminal-style output into one stream and is implemented on Unix-like platforms plus Windows through ConPTY.
 
 ## `cmdagentui`
 
@@ -174,6 +178,7 @@ Examples:
 - listing executions and transfers
 - inspecting metadata and persisted output
 - starting argv commands, shell commands, and shell sessions
+- optionally enabling PTY mode for shell commands and shell sessions
 - uploading files
 - downloading files and archives
 - canceling running work
@@ -203,6 +208,7 @@ Common controls:
 - when the navigation panel is focused, `j/k` changes the active section
 - when the main panel is focused on a list, `j/k` moves through the list
 - when the main panel is focused on a form, `tab` and `shift+tab` move between form fields
+- the shell and session forms include a `Use PTY` field
 - when the detail panel is focused, `j/k` scrolls the detail content
 - `r`: refresh
 - `a`: attach to the selected running execution when the main list is focused
@@ -221,6 +227,8 @@ Attach mode reserves `ctrl+g` as the escape prefix:
 - `ctrl+g c`: request cancellation
 - `ctrl+g h`: show attach help
 - `ctrl+d`: send EOF
+
+PTY mode is useful for prompt-oriented shells and terminal-aware programs. `cmdagentui` automatically sends its current dimensions when attaching to a PTY-backed execution and updates the remote PTY as the terminal is resized. PTY mode merges interactive output into one stream and is implemented on Unix-like platforms plus Windows through ConPTY. `cmdagentui` is still not a full terminal emulator, so full-screen TUIs and complex cursor-control applications can still render imperfectly there even though `cmdagentctl` PTY attach is tighter now.
 
 ## Layout
 
@@ -345,6 +353,20 @@ sudo ./scripts/service-smoke-macos.sh
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\service-smoke-windows.ps1
 ```
+
+## Windows PTY Smoke Script
+
+When you have access to a Windows host, you can run an automated ConPTY smoke test that:
+
+- starts a foreground `cmdagentd`
+- verifies a PTY-backed shell command
+- verifies a PTY-backed shell session plus attach flow
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows.ps1
+```
+
+The script defaults to the repository's `cmdagentd.exe`, `cmdagentctl.exe`, and `dev/certs/*` development certificates.
 
 ## Release Packaging
 

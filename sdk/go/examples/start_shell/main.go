@@ -5,12 +5,14 @@ import (
 	"flag"
 	"fmt"
 
+	"cmdagent/pkg/cmdagentclient"
 	"cmdagent/sdk/go/examples/exampleutil"
 )
 
 func main() {
 	command := flag.String("command", "", "shell command")
 	shell := flag.String("shell", "", "shell binary")
+	usePTY := flag.Bool("pty", false, "run the shell command under a PTY")
 	flag.Parse()
 	if *command == "" {
 		panic("--command is required")
@@ -20,7 +22,7 @@ func main() {
 		panic(err)
 	}
 	defer client.Close()
-	execution, err := client.StartShellCommand(context.Background(), *shell, *command)
+	execution, err := client.StartShellCommandWithOptions(context.Background(), *shell, *command, cmdagentclient.ShellOptions{UsePTY: *usePTY})
 	if err != nil {
 		panic(err)
 	}
