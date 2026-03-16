@@ -1,0 +1,88 @@
+name: docs-pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      docs_url: ${{ steps.site.outputs.docs_url }}
+      docs_base_url: ${{ steps.site.outputs.docs_base_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18.20.4"
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Compute site URL
+        id: site
+        env:
+          DOCS_URL_OVERRIDE: ${{ vars.DOCS_URL }}
+          DOCS_BASE_URL_OVERRIDE: ${{ vars.DOCS_BASE_URL }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          if [ -n "$DOCS_URL_OVERRIDE" ]; then
+            docs_url="$DOCS_URL_OVERRIDE"
+          else
+            docs_url="https://${REPO_OWNER}.github.io"
+          fi
+
+          if [ -n "$DOCS_BASE_URL_OVERRIDE" ]; then
+            docs_base_url="$DOCS_BASE_URL_OVERRIDE"
+          elif [[ "$REPO_NAME" == *.github.io ]]; then
+            docs_base_url="/"
+          else
+            docs_base_url="/${REPO_NAME}/"
+          fi
+
+          echo "docs_url=$docs_url" >> "$GITHUB_OUTPUT"
+          echo "docs_base_url=$docs_base_url" >> "$GITHUB_OUTPUT"
+
+      - name: Install website dependencies
+        run: npm ci
+        working-directory: website
+
+      - name: Build documentation site
+        env:
+          DOCS_URL: ${{ steps.site.outputs.docs_url }}
+          DOCS_BASE_URL: ${{ steps.site.outputs.docs_base_url }}
+          ORGANIZATION_NAME: ${{ github.repository_owner }}
+          PROJECT_NAME: ${{ github.event.repository.name }}
+        run: npm run build
+        working-directory: website
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: website/build
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

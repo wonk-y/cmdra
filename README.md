@@ -32,7 +32,7 @@ Regenerate all Go and Python protobuf stubs with:
 
 ## Development Certificates
 
-Generate development certificates with a local CA, a server certificate for `localhost` and `127.0.0.1`, and two client certificates (`client-a`, `client-b`):
+Generate development certificates with a local CA, a server certificate for `localhost` and `127.0.0.1`, and development client certificates:
 
 ```bash
 ./scripts/generate-dev-certs.sh certs
@@ -40,8 +40,10 @@ Generate development certificates with a local CA, a server certificate for `loc
 
 Notes:
 
-- Server certificates should include SANs when clients verify hostnames.
-- Client certificates do not need SANs for the server-side CN-based RBAC in this project.
+- Normal operation only requires one client certificate plus the server certificate.
+- The development script generates both `client-a` and `client-b` so the test suite can exercise cross-identity authorization paths.
+- Server certificates should include DNS/IP SANs for the hostname or IP clients connect to when clients perform normal certificate verification.
+- Client certificates do not need SANs for this project's CN-based authorization model.
 - The daemon authorizes clients by certificate CN via `--allowed-client-cn`.
 
 ## Run The Daemon
@@ -52,7 +54,7 @@ Notes:
   --server-cert certs/server.crt \
   --server-key certs/server.key \
   --client-ca certs/ca.crt \
-  --allowed-client-cn client-a,client-b \
+  --allowed-client-cn client-a \
   --data-dir ./data \
   --audit-log ./data/audit.log
 ```
@@ -65,7 +67,7 @@ Backward-compatible direct flag invocation also works:
   --server-cert certs/server.crt \
   --server-key certs/server.key \
   --client-ca certs/ca.crt \
-  --allowed-client-cn client-a,client-b \
+  --allowed-client-cn client-a \
   --data-dir ./data
 ```
 
@@ -79,7 +81,7 @@ Backward-compatible direct flag invocation also works:
   "server_cert_file": "certs/server.crt",
   "server_key_file": "certs/server.key",
   "client_ca_file": "certs/ca.crt",
-  "allowed_client_cn": "client-a,client-b",
+  "allowed_client_cn": "client-a",
   "data_dir": "data",
   "audit_log_path": "data/audit.log",
   "chunk_size": 32768,
@@ -178,6 +180,48 @@ See:
 ./scripts/ci-python.sh
 ```
 
+## Documentation Site
+
+The Docusaurus site lives in `website/`.
+
+From the repository root:
+
+```bash
+cd website
+npm install
+npm start
+```
+
+Build the static site:
+
+```bash
+./scripts/ci-docs.sh
+```
+
+The generated site is written to `website/build`.
+
+## GitHub Pages
+
+The repository includes a GitHub Pages deployment workflow at `.github/workflows/docs-pages.yml`.
+
+After pushing the repository to GitHub:
+
+1. Go to `Settings -> Pages`.
+2. Set `Source` to `GitHub Actions`.
+3. Push to `main` or run the `docs-pages` workflow manually.
+
+The workflow computes the default Pages URL automatically:
+
+- project pages repo: `https://<owner>.github.io/<repo>/`
+- user or organization pages repo (`<owner>.github.io`): `https://<owner>.github.io/`
+
+Optional repository variables:
+
+- `DOCS_URL`
+  Use this when deploying behind a custom domain or a non-default Pages host.
+- `DOCS_BASE_URL`
+  Use this when the site should not be served from the default repo-derived base path.
+
 ## Go Tests
 
 ```bash
@@ -199,6 +243,7 @@ Local commands that match the GitHub Actions workflow:
 ```bash
 ./scripts/ci-go.sh
 ./scripts/ci-python.sh
+./scripts/ci-docs.sh
 ./scripts/ci-verify-version.sh
 ./scripts/ci-verify-generated.sh
 ./scripts/build-release.sh

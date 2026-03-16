@@ -1,0 +1,11 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#F6EFDE"/>
+  <circle cx="1014" cy="116" r="208" fill="#E8B45C" fill-opacity="0.24"/>
+  <circle cx="170" cy="560" r="246" fill="#2D7B7B" fill-opacity="0.18"/>
+  <rect x="74" y="72" width="120" height="120" rx="28" fill="#17383B"/>
+  <rect x="98" y="96" width="72" height="72" rx="18" fill="#F4E7CD"/>
+  <path d="M414 204H224V430H414V390H272V337H390V299H272V244H414V204Z" fill="#17383B"/>
+  <path d="M512 430V204H618C736 204 810 247 810 316C810 387 736 430 618 430H512ZM560 390H620C705 390 760 361 760 316C760 273 705 244 620 244H560V390Z" fill="#17383B"/>
+  <path d="M870 430V204H1086V244H918V297H1066V337H918V390H1086V430H870Z" fill="#17383B"/>
+  <text x="224" y="514" fill="#17383B" font-family="Arial, sans-serif" font-size="38" font-weight="700">CmdAgent docs: install, operate, and integrate across every supported surface.</text>
+</svg>

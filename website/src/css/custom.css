@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ifm-color-primary: #0f6a6a;
+  --ifm-color-primary-dark: #0d5f5f;
+  --ifm-color-primary-darker: #0c5959;
+  --ifm-color-primary-darkest: #094949;
+  --ifm-color-primary-light: #117575;
+  --ifm-color-primary-lighter: #127b7b;
+  --ifm-color-primary-lightest: #159292;
+  --ifm-background-color: #fffdf8;
+  --ifm-background-surface-color: #ffffff;
+  --ifm-code-font-size: 93%;
+  --ifm-font-family-base: 'Manrope', 'Segoe UI', sans-serif;
+  --ifm-heading-font-family: 'Fraunces', Georgia, serif;
+  --ifm-font-family-monospace: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  --ifm-navbar-background-color: rgba(255, 251, 243, 0.84);
+  --ifm-navbar-shadow: 0 12px 30px rgba(23, 42, 42, 0.08);
+  --ifm-footer-background-color: #1e2c2e;
+  --ifm-footer-color: #edf1ee;
+  --ifm-footer-link-color: #edf1ee;
+  --ifm-link-hover-decoration: none;
+  --docusaurus-highlighted-code-line-bg: rgba(15, 106, 106, 0.08);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+[data-theme='light'] body {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 1) 0%, rgba(250, 247, 238, 1) 100%);
+}
+
+.navbar {
+  backdrop-filter: blur(18px);
+}
+
+.navbar__title,
+.hero__title,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.03em;
+}
+
+.theme-doc-markdown {
+  font-size: 1.02rem;
+}
+
+.theme-doc-markdown h1 {
+  font-size: clamp(2.3rem, 5vw, 3.8rem);
+}
+
+.theme-doc-markdown h2 {
+  margin-top: 2.8rem;
+  border-top: 1px solid rgba(24, 55, 55, 0.1);
+  padding-top: 1.4rem;
+}
+
+[data-theme='light'] .theme-doc-sidebar-container {
+  border-right-color: rgba(28, 54, 54, 0.08);
+  background: linear-gradient(180deg, rgba(253, 250, 243, 0.9), rgba(249, 246, 239, 0.88));
+}
+
+.menu__link {
+  border-radius: 0.8rem;
+}
+
+.menu__link--active {
+  background: rgba(15, 106, 106, 0.09);
+}
+
+.pagination-nav__link {
+  border-color: rgba(20, 62, 62, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 18px 44px rgba(34, 48, 48, 0.06);
+}
+
+.alert {
+  border-radius: 1rem;
+}
+
+code {
+  border: 1px solid rgba(15, 106, 106, 0.1);
+}
+
+.footer {
+  background:
+    radial-gradient(circle at top right, rgba(231, 170, 84, 0.18), transparent 20%),
+    linear-gradient(180deg, #1e2c2e 0%, #192325 100%);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #f2b95c;
+  --ifm-color-primary-dark: #efaa39;
+  --ifm-color-primary-darker: #eea326;
+  --ifm-color-primary-darkest: #cb850f;
+  --ifm-color-primary-light: #f5c87f;
+  --ifm-color-primary-lighter: #f7cf92;
+  --ifm-color-primary-lightest: #fbe5c7;
+  --ifm-background-color: #11191b;
+  --ifm-background-surface-color: #172225;
+  --ifm-navbar-background-color: rgba(17, 25, 27, 0.86);
+  --ifm-footer-background-color: #0c1214;
+  --docusaurus-highlighted-code-line-bg: rgba(242, 185, 92, 0.14);
+}
+
+[data-theme='dark'] body {
+  background: linear-gradient(180deg, #0f1719 0%, #11191b 100%);
+}
+
+[data-theme='dark'] .main-wrapper {
+  background:
+    radial-gradient(circle at top left, rgba(242, 185, 92, 0.08), transparent 18%),
+    linear-gradient(180deg, #11191b 0%, #172225 100%);
+}
+
+[data-theme='dark'] .theme-doc-sidebar-container {
+  border-right-color: rgba(242, 185, 92, 0.12);
+  background: linear-gradient(180deg, rgba(18, 27, 29, 0.94), rgba(14, 21, 23, 0.98));
+}
+
+[data-theme='dark'] .theme-doc-markdown h2 {
+  border-top-color: rgba(242, 185, 92, 0.14);
+}
+
+[data-theme='dark'] .menu__link--active {
+  background: rgba(242, 185, 92, 0.12);
+}
+
+[data-theme='dark'] .pagination-nav__link {
+  border-color: rgba(242, 185, 92, 0.14);
+  background: linear-gradient(180deg, rgba(24, 36, 38, 0.94) 0%, rgba(16, 24, 26, 0.96) 100%);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme='dark'] .alert {
+  background: rgba(23, 34, 37, 0.92);
+}
+
+[data-theme='dark'] code {
+  border-color: rgba(242, 185, 92, 0.14);
+  background: rgba(242, 185, 92, 0.08);
+}
