@@ -29,6 +29,7 @@ build_one() {
   mkdir -p "$target_dir"
   GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdagentd$ext" ./cmd/cmdagentd
   GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdagentctl$ext" ./cmd/cmdagentctl
+  GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdagentui$ext" ./cmd/cmdagentui
 }
 
 build_one linux amd64

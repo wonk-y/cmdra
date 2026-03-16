@@ -10,7 +10,7 @@ const siteBaseUrl = process.env.DOCS_BASE_URL ?? '/';
 
 const config: Config = {
   title: 'CmdAgent Docs',
-  tagline: 'Operate cmdagentd across Linux, macOS, and Windows with mTLS, SDKs, Robot Framework, and Ansible.',
+  tagline: 'Operate cmdagentd across Linux, macOS, and Windows with mTLS, the CLI, the TUI, SDKs, Robot Framework, and Ansible.',
   favicon: 'img/favicon.ico',
   url: siteUrl,
   baseUrl: siteBaseUrl,
@@ -68,6 +68,11 @@ const config: Config = {
           position: 'left',
         },
         {
+          to: `${siteBaseUrl}docs/cli/cmdagentui`,
+          label: 'TUI',
+          position: 'left',
+        },
+        {
           to: `${siteBaseUrl}docs/sdk/go`,
           label: 'SDKs',
           position: 'left',
@@ -94,6 +99,7 @@ const config: Config = {
           title: 'Use',
           items: [
             {label: 'cmdagentctl', to: `${siteBaseUrl}docs/cli/cmdagentctl`},
+            {label: 'cmdagentui', to: `${siteBaseUrl}docs/cli/cmdagentui`},
             {label: 'Go SDK', to: `${siteBaseUrl}docs/sdk/go`},
             {label: 'Python SDK', to: `${siteBaseUrl}docs/sdk/python`},
           ],

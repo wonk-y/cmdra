@@ -18,8 +18,10 @@ Execution and transfer metadata are stored in SQLite under `-data-dir`. Output i
 ```bash
 go build ./cmd/cmdagentd
 go build ./cmd/cmdagentctl
+go build ./cmd/cmdagentui
 ./cmdagentd version
 ./cmdagentctl version
+./cmdagentui version
 ```
 
 ## Proto Generation
@@ -159,6 +161,57 @@ Examples:
 ```
 
 `get` includes persisted output by internally calling both `GetExecution` and `ReadOutput`.
+
+## `cmdagentui`
+
+`cmdagentui` is a Bubble Tea TUI built on top of the Go SDK. It exposes the same operational surface as `cmdagentctl` in a keyboard-driven interface for:
+
+- listing executions and transfers
+- inspecting metadata and persisted output
+- starting argv commands, shell commands, and shell sessions
+- uploading files
+- downloading files and archives
+- canceling running work
+- attaching to running executions and shell sessions
+
+Start it with the same connection flags:
+
+```bash
+./cmdagentui \
+  --address 127.0.0.1:8443 \
+  --ca dev/certs/ca.crt \
+  --cert dev/certs/client-a.crt \
+  --key dev/certs/client-a.key
+```
+
+Layout:
+
+- left panel: navigation
+- top-right panel: active list or form
+- bottom-right panel: detail/output/instructions
+
+Common controls:
+
+- `tab` / `shift+tab`: move to the next or previous field or panel
+- when the navigation panel is focused, `j/k` changes the active section
+- when the main panel is focused on a list, `j/k` moves through the list
+- when the main panel is focused on a form, `tab` and `shift+tab` move between form fields
+- when the detail panel is focused, `j/k` scrolls the detail content
+- `r`: refresh
+- `a`: attach to the selected running execution when the main list is focused
+- `c`: cancel the selected running execution or transfer when the main list is focused
+- `o`: toggle persisted output when the detail panel is focused
+- `enter`: submit the active command or transfer form
+- `[` / `]`: switch form mode
+- `?`: toggle help
+- `q`: quit
+
+Attach mode reserves `ctrl+g` as the escape prefix:
+
+- `ctrl+g q`: detach from the live session
+- `ctrl+g c`: request cancellation
+- `ctrl+g h`: show attach help
+- `ctrl+d`: send EOF
 
 ## Layout
 

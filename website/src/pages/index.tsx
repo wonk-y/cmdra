@@ -23,6 +23,13 @@ const sections = [
     eyebrow: 'CLI',
   },
   {
+    title: 'Operate with cmdagentui',
+    description:
+      'Use the Bubble Tea terminal UI to inspect executions and transfers, launch new work, and attach to live sessions.',
+    to: 'docs/cli/cmdagentui',
+    eyebrow: 'TUI',
+  },
+  {
     title: 'Build against the SDKs',
     description:
       'Use the Go and Python client libraries for synchronous and asynchronous execution and transfer workflows.',
@@ -52,7 +59,7 @@ function Hero() {
           <p className={styles.subtitle}>
             CmdAgent exposes argv commands, shell commands, persistent shell sessions, output replay,
             and file transfer over gRPC with mutual TLS. This site documents installation and usage
-            across Linux, macOS, Windows, Go, Python, Robot Framework, and Ansible.
+            across Linux, macOS, Windows, the CLI, the TUI, Go, Python, Robot Framework, and Ansible.
           </p>
           <div className={styles.heroActions}>
             <Link className="button button--primary button--lg" to={docsUrl}>
@@ -68,7 +75,11 @@ function Hero() {
 ./cmdagentctl --address 127.0.0.1:8443 \
   --ca dev/certs/ca.crt \
   --cert dev/certs/client-a.crt \
-  --key dev/certs/client-a.key list`}</code>
+  --key dev/certs/client-a.key list
+./cmdagentui --address 127.0.0.1:8443 \
+  --ca dev/certs/ca.crt \
+  --cert dev/certs/client-a.crt \
+  --key dev/certs/client-a.key`}</code>
           </pre>
         </div>
       </div>
@@ -105,7 +116,7 @@ export default function Home(): ReactElement {
   return (
     <Layout
       title="Documentation"
-      description="Installation and usage guides for cmdagentd, cmdagentctl, the Go SDK, the Python SDK, Robot Framework, and Ansible.">
+      description="Installation and usage guides for cmdagentd, cmdagentctl, cmdagentui, the Go SDK, the Python SDK, Robot Framework, and Ansible.">
       <Hero />
       <SectionCards />
     </Layout>

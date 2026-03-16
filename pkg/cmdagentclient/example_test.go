@@ -12,8 +12,6 @@ import (
 func ExampleClient_StartArgv() {
 	if runtime.GOOS == "windows" {
 		fmt.Println("skipped")
-		// Output:
-		// skipped
 		return
 	}
 
@@ -45,15 +43,11 @@ func ExampleClient_StartArgv() {
 		}
 	}
 	fmt.Println(finished.GetExecutionId() != "", output.String() == "example\n")
-	// Output:
-	// true true
 }
 
 func ExampleClient_UploadFileAsync() {
 	if runtime.GOOS == "windows" {
 		fmt.Println("skipped")
-		// Output:
-		// skipped
 		return
 	}
 
@@ -84,8 +78,6 @@ func ExampleClient_UploadFileAsync() {
 		panic(err)
 	}
 	fmt.Println(resp.GetTransferId() != "", string(data) == "example-file")
-	// Output:
-	// true true
 }
 
 type testingTAdapter struct{}

@@ -6,6 +6,8 @@ sidebar_position: 1
 
 `cmdagentctl` is the operator-facing CLI for interacting with one `cmdagentd` endpoint over mTLS.
 
+If you want a full-screen operator console instead of subcommands, use [`cmdagentui`](pathname:///docs/cli/cmdagentui).
+
 ## Shared connection flags
 
 ```text

@@ -1,0 +1,104 @@
+---
+sidebar_position: 2
+---
+
+# Use cmdagentui
+
+`cmdagentui` is the terminal user interface for interacting with one `cmdagentd` endpoint over mTLS. It is built on the Go client library and covers the same operational surface as `cmdagentctl` with a keyboard-driven interface.
+
+## Shared connection flags
+
+```text
+--address
+--ca
+--cert
+--key
+--server-name
+--insecure-skip-verify
+--timeout
+```
+
+## Start the TUI
+
+```bash
+./cmdagentui \
+  --address 127.0.0.1:8443 \
+  --ca dev/certs/ca.crt \
+  --cert dev/certs/client-a.crt \
+  --key dev/certs/client-a.key
+```
+
+`cmdagentui version` prints the build version in the same way as the other binaries.
+
+## Layout
+
+The TUI keeps a fixed three-panel layout:
+
+- left panel: navigation
+- top-right panel: the active list or form
+- bottom-right panel: detail, output, or section guidance
+
+The active section changes from the navigation panel. `tab` and `shift+tab` are the only way to move focus between panels.
+
+## What you can do from the TUI
+
+`cmdagentui` supports:
+
+- listing executions and transfers
+- inspecting metadata for running and finished jobs
+- replaying persisted stdout and stderr output
+- starting argv commands
+- starting shell commands
+- starting persistent shell sessions
+- uploading files
+- downloading files
+- downloading zip archives
+- canceling running work
+- attaching to a running execution or shell session
+
+## Common controls
+
+```text
+tab                 next field or panel
+shift+tab           previous field or panel
+j / k or arrows     drive the focused non-form panel
+r                   refresh the current data
+a                   attach from the focused execution list
+c                   cancel from the focused execution or transfer list
+o                   toggle persisted output from the focused detail panel
+enter               submit the focused form
+[ / ]               switch form mode
+?                   toggle help
+q                   quit
+```
+
+Panel behavior:
+
+- navigation focused: `j/k` switches between `Executions`, `Transfers`, `New Command`, `New Transfer`, and `Connection`
+- main panel focused on a list: `j/k` moves through list items
+- main panel focused on a form: `tab` and `shift+tab` move between form fields; when the last field is reached, `tab` moves to the next pane, and when the first field is reached, `shift+tab` moves to the previous pane
+- detail panel focused: `j/k` scrolls detail and output content
+
+## Attach mode
+
+Attach mode sends most keypresses directly to the remote process. To avoid conflicting with common `tmux` prefixes, `cmdagentui` reserves `ctrl+g` as the escape prefix.
+
+```text
+ctrl+g q   detach from the live session
+ctrl+g c   request cancellation
+ctrl+g h   show attach help
+ctrl+d     send EOF
+```
+
+This mode is intended for raw-pipe interaction. It is not a full terminal emulator or PTY client.
+
+## Recommended workflow
+
+1. Start in `Executions` to inspect current and historical jobs.
+2. Use `New Command` for argv, shell, or persistent session creation.
+3. Switch to `Transfers` to monitor uploads and downloads.
+4. Attach to a running shell session from `Executions` when interactive control is needed.
+
+## Current v1 boundary
+
+The `Connection` section shows the live connection configuration, but it does not reconnect with edited values from inside the TUI yet. Launch `cmdagentui` with the intended TLS and address flags when starting the program.

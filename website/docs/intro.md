@@ -11,7 +11,7 @@ Use this site to:
 
 - install `cmdagentd` on Linux, macOS, and Windows
 - configure mTLS and CN-based client authorization
-- operate the daemon with `cmdagentctl`
+- operate the daemon with `cmdagentctl` or `cmdagentui`
 - build against the Go and Python SDKs
 - integrate the Python client with Robot Framework and Ansible
 
@@ -31,7 +31,7 @@ Use this site to:
 
 1. [Generate development certificates](pathname:///docs/install/certs)
 2. [Install on Linux](pathname:///docs/install/linux), [macOS](pathname:///docs/install/macos), or [Windows](pathname:///docs/install/windows)
-3. [Use `cmdagentctl`](pathname:///docs/cli/cmdagentctl)
+3. [Use `cmdagentctl`](pathname:///docs/cli/cmdagentctl) or [use `cmdagentui`](pathname:///docs/cli/cmdagentui)
 4. [Use the Go SDK](pathname:///docs/sdk/go) or [Python SDK](pathname:///docs/sdk/python)
 5. [Integrate Robot Framework](pathname:///docs/integrations/robot-framework) or [Ansible](pathname:///docs/integrations/ansible)
 
@@ -42,7 +42,9 @@ Build the binaries from the repository root:
 ```bash
 go build ./cmd/cmdagentd
 go build ./cmd/cmdagentctl
+go build ./cmd/cmdagentui
 ./cmdagentctl version
+./cmdagentui version
 ```
 
 Generate protobuf stubs:

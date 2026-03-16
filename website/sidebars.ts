@@ -15,8 +15,9 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Use the CLI',
-      items: ['cli/cmdagentctl'],
+      label: 'Use the CLI and TUI',
+      collapsed: false,
+      items: ['cli/cmdagentctl', 'cli/cmdagentui'],
     },
     {
       type: 'category',

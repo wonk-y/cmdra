@@ -1,8 +1,8 @@
 {
   "listen_address": "127.0.0.1:8443",
-  "server_cert_file": "dev/certs/server.crt",
-  "server_key_file": "dev/certs/server.key",
-  "client_ca_file": "dev/certs/ca.crt",
+  "server_cert_file": "certs/server.crt",
+  "server_key_file": "certs/server.key",
+  "client_ca_file": "certs/ca.crt",
   "allowed_client_cn": "client-a",
   "data_dir": "dev/data",
   "audit_log_path": "dev/data/audit.log",
