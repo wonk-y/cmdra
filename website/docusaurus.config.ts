@@ -9,8 +9,8 @@ const siteUrl = process.env.DOCS_URL ?? 'http://localhost';
 const siteBaseUrl = process.env.DOCS_BASE_URL ?? '/';
 
 const config: Config = {
-  title: 'CmdAgent Docs',
-  tagline: 'Operate cmdagentd across Linux, macOS, and Windows with mTLS, the CLI, the TUI, SDKs, Robot Framework, and Ansible.',
+  title: 'Cmdra Docs',
+  tagline: 'Operate cmdrad across Linux, macOS, and Windows with mTLS, the CLI, the TUI, SDKs, Robot Framework, and Ansible.',
   favicon: 'img/favicon.ico',
   url: siteUrl,
   baseUrl: siteBaseUrl,
@@ -40,15 +40,15 @@ const config: Config = {
     ],
   ],
   themeConfig: {
-    image: 'img/cmdagent-social-card.svg',
+    image: 'img/cmdra-social-card.svg',
     colorMode: {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'CmdAgent',
+      title: 'Cmdra',
       logo: {
-        alt: 'CmdAgent',
-        src: 'img/cmdagent-logo.svg',
+        alt: 'Cmdra',
+        src: 'img/cmdra-logo.svg',
         href: siteBaseUrl,
       },
       items: [
@@ -63,12 +63,12 @@ const config: Config = {
           position: 'left',
         },
         {
-          to: `${siteBaseUrl}docs/cli/cmdagentctl`,
+          to: `${siteBaseUrl}docs/cli/cmdractl`,
           label: 'CLI',
           position: 'left',
         },
         {
-          to: `${siteBaseUrl}docs/cli/cmdagentui`,
+          to: `${siteBaseUrl}docs/cli/cmdraui`,
           label: 'TUI',
           position: 'left',
         },
@@ -98,8 +98,8 @@ const config: Config = {
         {
           title: 'Use',
           items: [
-            {label: 'cmdagentctl', to: `${siteBaseUrl}docs/cli/cmdagentctl`},
-            {label: 'cmdagentui', to: `${siteBaseUrl}docs/cli/cmdagentui`},
+            {label: 'cmdractl', to: `${siteBaseUrl}docs/cli/cmdractl`},
+            {label: 'cmdraui', to: `${siteBaseUrl}docs/cli/cmdraui`},
             {label: 'Go SDK', to: `${siteBaseUrl}docs/sdk/go`},
             {label: 'Python SDK', to: `${siteBaseUrl}docs/sdk/python`},
           ],
@@ -112,7 +112,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} CmdAgent documentation. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Cmdra documentation. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

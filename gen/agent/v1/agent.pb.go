@@ -2569,7 +2569,7 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
 	"UploadFile\x12\x1b.agent.v1.UploadFileRequest\x1a\x1c.agent.v1.UploadFileResponse(\x01\x12D\n" +
 	"\fDownloadFile\x12\x1d.agent.v1.DownloadFileRequest\x1a\x13.agent.v1.FileChunk0\x01\x12J\n" +
-	"\x0fDownloadArchive\x12 .agent.v1.DownloadArchiveRequest\x1a\x13.agent.v1.FileChunk0\x01B\x1fZ\x1dcmdagent/gen/agent/v1;agentv1b\x06proto3"
+	"\x0fDownloadArchive\x12 .agent.v1.DownloadArchiveRequest\x1a\x13.agent.v1.FileChunk0\x01B\x1cZ\x1acmdra/gen/agent/v1;agentv1b\x06proto3"
 
 var (
 	file_agent_v1_agent_proto_rawDescOnce sync.Once

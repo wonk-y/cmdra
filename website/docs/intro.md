@@ -3,21 +3,21 @@ sidebar_position: 1
 slug: /
 ---
 
-# CmdAgent Documentation
+# Cmdra Documentation
 
-CmdAgent is a long-running Go daemon that exposes a gRPC API over mutual TLS for remote process execution and file transfer.
+Cmdra is a long-running Go daemon that exposes a gRPC API over mutual TLS for remote process execution and file transfer.
 
 Use this site to:
 
-- install `cmdagentd` on Linux, macOS, and Windows
+- install `cmdrad` on Linux, macOS, and Windows
 - configure mTLS and CN-based client authorization
-- operate the daemon with `cmdagentctl` or `cmdagentui`
+- operate the daemon with `cmdractl` or `cmdraui`
 - build against the Go and Python SDKs
 - integrate the Python client with Robot Framework and Ansible
 
 ## What the daemon provides
 
-`cmdagentd` supports:
+`cmdrad` supports:
 
 - argv command execution
 - shell command execution
@@ -34,7 +34,7 @@ Use this site to:
 
 1. [Generate development certificates](pathname:///docs/install/certs)
 2. [Install on Linux](pathname:///docs/install/linux), [macOS](pathname:///docs/install/macos), or [Windows](pathname:///docs/install/windows)
-3. [Use `cmdagentctl`](pathname:///docs/cli/cmdagentctl) or [use `cmdagentui`](pathname:///docs/cli/cmdagentui)
+3. [Use `cmdractl`](pathname:///docs/cli/cmdractl) or [use `cmdraui`](pathname:///docs/cli/cmdraui)
 4. [Use the Go SDK](pathname:///docs/sdk/go) or [Python SDK](pathname:///docs/sdk/python)
 5. [Integrate Robot Framework](pathname:///docs/integrations/robot-framework) or [Ansible](pathname:///docs/integrations/ansible)
 
@@ -43,11 +43,11 @@ Use this site to:
 Build the binaries from the repository root:
 
 ```bash
-go build ./cmd/cmdagentd
-go build ./cmd/cmdagentctl
-go build ./cmd/cmdagentui
-./cmdagentctl version
-./cmdagentui version
+go build ./cmd/cmdrad
+go build ./cmd/cmdractl
+go build ./cmd/cmdraui
+./cmdractl version
+./cmdraui version
 ```
 
 Generate protobuf stubs:

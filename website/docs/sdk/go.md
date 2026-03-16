@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Go SDK
 
-The Go client lives in `pkg/cmdagentclient` and wraps the generated gRPC client with mTLS setup and higher-level helpers.
+The Go client lives in `pkg/cmdraclient` and wraps the generated gRPC client with mTLS setup and higher-level helpers.
 
 ## Dial a client
 
@@ -15,14 +15,14 @@ import (
   "context"
   "time"
 
-  "cmdagent/pkg/cmdagentclient"
+  "cmdra/pkg/cmdraclient"
 )
 
 func main() {
   ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
   defer cancel()
 
-  client, err := cmdagentclient.Dial(ctx, cmdagentclient.DialConfig{
+  client, err := cmdraclient.Dial(ctx, cmdraclient.DialConfig{
     Address:        "127.0.0.1:8443",
     CAFile:         "dev/certs/ca.crt",
     ClientCertFile: "dev/certs/client-a.crt",
@@ -41,7 +41,7 @@ func main() {
 execution, err := client.StartArgv(ctx, "/bin/echo", []string{"hello"})
 execution, err := client.StartShellCommand(ctx, "/bin/sh", "printf 'hello\\n'")
 execution, err := client.StartShellSession(ctx, "/bin/sh", nil)
-execution, err := client.StartShellCommandWithOptions(ctx, "/bin/sh", "printf 'hello from pty\\n'", cmdagentclient.ShellOptions{UsePTY: true})
+execution, err := client.StartShellCommandWithOptions(ctx, "/bin/sh", "printf 'hello from pty\\n'", cmdraclient.ShellOptions{UsePTY: true})
 ```
 
 ## Asynchronous start helpers
@@ -65,7 +65,7 @@ Available async helpers:
 Use `ShellOptions{UsePTY: true}` when starting shell commands or shell sessions that should behave like a terminal-attached process.
 
 ```go
-execution, err := client.StartShellSessionWithOptions(ctx, "/bin/sh", nil, cmdagentclient.ShellOptions{
+execution, err := client.StartShellSessionWithOptions(ctx, "/bin/sh", nil, cmdraclient.ShellOptions{
   UsePTY:  true,
   PTYRows: 24,
   PTYCols: 80,
@@ -97,9 +97,9 @@ result, err := client.ClearHistory(ctx)
 ## Upload and download files
 
 ```go
-uploadResp, err := client.UploadFile(ctx, "./README.md", "/tmp/README.md", cmdagentclient.UploadOptions{})
-downloadResp, err := client.DownloadFile(ctx, "/tmp/README.md", "./README.copy", cmdagentclient.DownloadOptions{})
-archiveResp, err := client.DownloadArchive(ctx, []string{"/tmp"}, "./tmp.zip", cmdagentclient.DownloadOptions{})
+uploadResp, err := client.UploadFile(ctx, "./README.md", "/tmp/README.md", cmdraclient.UploadOptions{})
+downloadResp, err := client.DownloadFile(ctx, "/tmp/README.md", "./README.copy", cmdraclient.DownloadOptions{})
+archiveResp, err := client.DownloadArchive(ctx, []string{"/tmp"}, "./tmp.zip", cmdraclient.DownloadOptions{})
 ```
 
 ## Attach to a running session
@@ -116,19 +116,19 @@ defer session.CloseSend()
 
 All examples read these environment variables:
 
-- `CMDAGENT_ADDRESS`
-- `CMDAGENT_CA`
-- `CMDAGENT_CERT`
-- `CMDAGENT_KEY`
-- `CMDAGENT_SERVER_NAME` optional
+- `CMDRA_ADDRESS`
+- `CMDRA_CA`
+- `CMDRA_CERT`
+- `CMDRA_KEY`
+- `CMDRA_SERVER_NAME` optional
 
 Run them from the repository root:
 
 ```bash
-export CMDAGENT_ADDRESS=127.0.0.1:8443
-export CMDAGENT_CA=dev/certs/ca.crt
-export CMDAGENT_CERT=dev/certs/client-a.crt
-export CMDAGENT_KEY=dev/certs/client-a.key
+export CMDRA_ADDRESS=127.0.0.1:8443
+export CMDRA_CA=dev/certs/ca.crt
+export CMDRA_CERT=dev/certs/client-a.crt
+export CMDRA_KEY=dev/certs/client-a.key
 
 go run ./sdk/go/examples/start_argv -- /bin/echo hello
 go run ./sdk/go/examples/start_shell --command "printf 'hello\n'"

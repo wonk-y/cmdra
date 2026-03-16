@@ -4,12 +4,12 @@ sidebar_position: 2
 
 # Ansible
 
-CmdAgent ships an Ansible connection plugin backed by the Python SDK.
+Cmdra ships an Ansible connection plugin backed by the Python SDK.
 
 Plugin path:
 
 ```text
-sdk/python/cmdagent_client/ansible_plugins/connection/cmdagent.py
+sdk/python/cmdra_client/ansible_plugins/connection/cmdra.py
 ```
 
 ## Install the Ansible extra
@@ -24,9 +24,9 @@ From the repository root:
 
 ```bash
 export PYTHONPATH="$PWD/sdk/python"
-export ANSIBLE_CONNECTION_PLUGINS="$PWD/sdk/python/cmdagent_client/ansible_plugins"
-export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-local"
-export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-remote"
+export ANSIBLE_CONNECTION_PLUGINS="$PWD/sdk/python/cmdra_client/ansible_plugins"
+export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-local"
+export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-remote"
 mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
 ```
 
@@ -34,11 +34,11 @@ mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
 
 The plugin reads:
 
-- `ansible_cmdagent_address`
-- `ansible_cmdagent_ca_cert`
-- `ansible_cmdagent_client_cert`
-- `ansible_cmdagent_client_key`
-- `ansible_cmdagent_server_name` optional
+- `ansible_cmdra_address`
+- `ansible_cmdra_ca_cert`
+- `ansible_cmdra_client_cert`
+- `ansible_cmdra_client_key`
+- `ansible_cmdra_server_name` optional
 
 ## Example run
 
@@ -54,6 +54,6 @@ The plugin reads:
 - `put_file` runs through `upload_file`
 - `fetch_file` runs through `download_file`
 
-This lets standard Ansible modules operate through `cmdagentd` rather than SSH.
+This lets standard Ansible modules operate through `cmdrad` rather than SSH.
 
-History-management operations such as deleting one execution from history or clearing finished history are not exposed through the connection plugin. Use `cmdagentctl`, `cmdagentui`, or one of the SDKs for those actions.
+History-management operations such as deleting one execution from history or clearing finished history are not exposed through the connection plugin. Use `cmdractl`, `cmdraui`, or one of the SDKs for those actions.

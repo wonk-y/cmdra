@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from cmdagent_client import get_ansible_plugin_path
+from cmdra_client import get_ansible_plugin_path
 
 
 @pytest.mark.skipif(not Path(".venv/bin/ansible-playbook").exists(), reason="ansible-playbook is not installed")
@@ -20,12 +20,12 @@ def test_ansible_connection_plugin(managed_daemon, tmp_path: Path, repo_root: Pa
     inventory.write_text(
         "\n".join(
             [
-                "[cmdagent]",
-                "target ansible_connection=cmdagent",
-                f"target ansible_cmdagent_address={managed_daemon['address']}",
-                f"target ansible_cmdagent_ca_cert={certs['ca']}",
-                f"target ansible_cmdagent_client_cert={certs['client_a_cert']}",
-                f"target ansible_cmdagent_client_key={certs['client_a_key']}",
+                "[cmdra]",
+                "target ansible_connection=cmdra",
+                f"target ansible_cmdra_address={managed_daemon['address']}",
+                f"target ansible_cmdra_ca_cert={certs['ca']}",
+                f"target ansible_cmdra_client_cert={certs['client_a_cert']}",
+                f"target ansible_cmdra_client_key={certs['client_a_key']}",
                 "",
             ]
         ),
@@ -35,7 +35,7 @@ def test_ansible_connection_plugin(managed_daemon, tmp_path: Path, repo_root: Pa
     playbook.write_text(
         "\n".join(
             [
-                "- hosts: cmdagent",
+                "- hosts: cmdra",
                 "  gather_facts: false",
                 "  tasks:",
                 "    - name: run command",

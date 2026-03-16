@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 
-	"cmdagent/pkg/cmdagentclient"
-	"cmdagent/sdk/go/examples/exampleutil"
+	"cmdra/pkg/cmdraclient"
+	"cmdra/sdk/go/examples/exampleutil"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}
 	defer client.Close()
-	execution, err := client.StartShellCommandWithOptions(context.Background(), *shell, *command, cmdagentclient.ShellOptions{UsePTY: *usePTY})
+	execution, err := client.StartShellCommandWithOptions(context.Background(), *shell, *command, cmdraclient.ShellOptions{UsePTY: *usePTY})
 	if err != nil {
 		panic(err)
 	}

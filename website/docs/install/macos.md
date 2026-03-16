@@ -9,8 +9,8 @@ sidebar_position: 3
 From source:
 
 ```bash
-go build -o cmdagentd ./cmd/cmdagentd
-go build -o cmdagentctl ./cmd/cmdagentctl
+go build -o cmdrad ./cmd/cmdrad
+go build -o cmdractl ./cmd/cmdractl
 ```
 
 For cross-built release output, use:
@@ -19,11 +19,11 @@ For cross-built release output, use:
 ./scripts/build-release.sh
 ```
 
-Then copy `dist/release/<version>/darwin-amd64/cmdagentd` or `darwin-arm64/cmdagentd` to the target host.
+Then copy `dist/release/<version>/darwin-amd64/cmdrad` or `darwin-arm64/cmdrad` to the target host.
 
 ## Create a daemon config file
 
-Create `dev/cmdagentd.json`:
+Create `dev/cmdrad.json`:
 
 ```json
 {
@@ -43,18 +43,18 @@ Create `dev/cmdagentd.json`:
 ## Run in the foreground
 
 ```bash
-./cmdagentd run --config ./dev/cmdagentd.json
+./cmdrad run --config ./dev/cmdrad.json
 ```
 
 ## Install as a launchd service
 
 ```bash
-sudo ./cmdagentd service install \
-  --name cmdagentd \
-  --config ./dev/cmdagentd.json
+sudo ./cmdrad service install \
+  --name cmdrad \
+  --config ./dev/cmdrad.json
 
-sudo ./cmdagentd service start --name cmdagentd
-sudo ./cmdagentd service status --name cmdagentd
+sudo ./cmdrad service start --name cmdrad
+sudo ./cmdrad service status --name cmdrad
 ```
 
 `service install` configures startup at boot through `launchd`.
@@ -62,8 +62,8 @@ sudo ./cmdagentd service status --name cmdagentd
 ## Remove the service
 
 ```bash
-sudo ./cmdagentd service stop --name cmdagentd
-sudo ./cmdagentd service uninstall --name cmdagentd
+sudo ./cmdrad service stop --name cmdrad
+sudo ./cmdrad service uninstall --name cmdrad
 ```
 
 ## Smoke-test the service flow

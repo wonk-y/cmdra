@@ -1,4 +1,4 @@
-module cmdagent
+module cmdra
 
 go 1.25.0
 

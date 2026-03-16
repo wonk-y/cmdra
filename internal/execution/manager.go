@@ -16,9 +16,9 @@ import (
 	"sync"
 	"time"
 
-	"cmdagent/internal/audit"
-	"cmdagent/internal/history"
-	"cmdagent/internal/platform"
+	"cmdra/internal/audit"
+	"cmdra/internal/history"
+	"cmdra/internal/platform"
 )
 
 var (

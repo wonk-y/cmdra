@@ -1,7 +1,7 @@
 param(
-  [string]$Binary = (Join-Path $PSScriptRoot "..\cmdagentd.exe"),
-  [string]$Config = (Join-Path $PSScriptRoot "..\dev/cmdagentd.json"),
-  [string]$Name = "cmdagentd-smoke"
+  [string]$Binary = (Join-Path $PSScriptRoot "..\cmdrad.exe"),
+  [string]$Config = (Join-Path $PSScriptRoot "..\dev/cmdrad.json"),
+  [string]$Name = "cmdrad-smoke"
 )
 
 & $Binary service install --name $Name --binary $Binary --config $Config

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from _client import new_client
-from cmdagent_client import format_execution
+from cmdra_client import format_execution
 
 
 client = new_client()

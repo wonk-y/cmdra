@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # PTY Attach Checklist
 
-Use this checklist when validating PTY-backed attach behavior in `cmdagentui` or `cmdagentctl`.
+Use this checklist when validating PTY-backed attach behavior in `cmdraui` or `cmdractl`.
 
 ## Core shell checks
 
@@ -34,9 +34,9 @@ Use this checklist when validating PTY-backed attach behavior in `cmdagentui` or
 1. Detach with `ctrl+g q`.
 2. Reattach and confirm the session is still usable.
 3. Cancel with `ctrl+g c`.
-4. Confirm the attached process exits and `cmdagentui` returns to the normal 3-pane view.
+4. Confirm the attached process exits and `cmdraui` returns to the normal 3-pane view.
 5. Start another session and let the shell exit normally.
-6. Confirm `cmdagentui` keeps the exited attach view visible until you detach explicitly.
+6. Confirm `cmdraui` keeps the exited attach view visible until you detach explicitly.
 
 ## PTY app checks
 
@@ -63,7 +63,7 @@ Record whether the issue is primarily:
 
 ## Comparison check
 
-If a PTY issue appears in `cmdagentui`, repeat the same session with `cmdagentctl attach`.
+If a PTY issue appears in `cmdraui`, repeat the same session with `cmdractl attach`.
 
 - If it reproduces in both, the issue is likely in the server/PTTY path.
-- If it only reproduces in `cmdagentui`, the issue is likely in the TUI emulator path.
+- If it only reproduces in `cmdraui`, the issue is likely in the TUI emulator path.

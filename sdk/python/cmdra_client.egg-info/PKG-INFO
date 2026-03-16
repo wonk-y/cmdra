@@ -1,0 +1,189 @@
+Metadata-Version: 2.4
+Name: cmdra-client
+Version: 0.1.0
+Summary: Python SDK for cmdrad
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: grpcio>=1.78.0
+Requires-Dist: protobuf>=6.31.1
+Provides-Extra: ansible
+Requires-Dist: ansible-core>=2.17; extra == "ansible"
+Provides-Extra: robot
+Requires-Dist: robotframework>=7.0; extra == "robot"
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: grpcio-tools>=1.78.0; extra == "dev"
+Requires-Dist: build>=1.4.0; extra == "dev"
+Requires-Dist: wheel>=0.45.0; extra == "dev"
+
+# Python SDK
+
+Install the package in editable mode from the repository root:
+
+```bash
+.venv/bin/pip install -e ./sdk/python
+```
+
+Or with optional extras:
+
+```bash
+.venv/bin/pip install -e './sdk/python[ansible,robot,dev]'
+```
+
+## Proto Generation
+
+From the repository root:
+
+```bash
+./scripts/gen-proto.sh
+```
+
+## Basic Usage
+
+```python
+from cmdra_client import Client
+
+client = Client(
+    address="127.0.0.1:8443",
+    ca_cert="dev/certs/ca.crt",
+    client_cert="dev/certs/client-a.crt",
+    client_key="dev/certs/client-a.key",
+)
+execution = client.start_argv("/bin/echo", ["hello"])
+print(execution.execution_id)
+client.delete_execution(execution.execution_id)
+result = client.clear_history()
+print(result.deleted_count, result.skipped_running_count)
+pty_execution = client.start_shell_session("/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+print(pty_execution.uses_pty)
+client.close()
+```
+
+## Example Commands
+
+```bash
+export PYTHONPATH="$PWD/sdk/python"
+python3 sdk/python/examples/basic_usage.py
+python3 sdk/python/examples/list_executions.py --id exec-123
+python3 sdk/python/examples/get_execution.py --id exec-123
+python3 sdk/python/examples/upload_file.py --local ./README.md --remote /tmp/README.md
+python3 sdk/python/examples/download_file.py --remote /tmp/README.md --local ./README.copy
+python3 sdk/python/examples/download_archive.py --path /tmp --local ./tmp.zip
+```
+
+## RobotFramework
+
+Install the optional extra if needed:
+
+```bash
+.venv/bin/pip install -e './sdk/python[robot]'
+```
+
+Run the Robot smoke suite from the repository root:
+
+```bash
+export PYTHONPATH="$PWD/sdk/python"
+.venv/bin/robot \
+  --variable ADDRESS:127.0.0.1:8443 \
+  --variable CA_CERT:dev/certs/ca.crt \
+  --variable CLIENT_CERT:dev/certs/client-a.crt \
+  --variable CLIENT_KEY:dev/certs/client-a.key \
+  sdk/python/examples/robot_smoke.robot
+```
+
+Run the CI-oriented Robot suite:
+
+```bash
+export PYTHONPATH="$PWD/sdk/python"
+.venv/bin/robot \
+  --variable ADDRESS:127.0.0.1:8443 \
+  --variable CA_CERT:dev/certs/ca.crt \
+  --variable CLIENT_CERT:dev/certs/client-a.crt \
+  --variable CLIENT_KEY:dev/certs/client-a.key \
+  sdk/python/examples/robot_ci.robot
+```
+
+### Robot history management
+
+The Robot wrapper tracks the Python SDK surface, including `Delete Execution` and `Clear History`.
+
+Example keyword usage:
+
+```robot
+*** Test Cases ***
+Delete One Finished Execution
+    ${execution}=    Start Argv    /bin/echo    hello
+    ${execution_id}=    Set Variable    ${execution.execution_id}
+    ${deleted_id}=    Delete Execution    ${execution_id}
+    Should Be Equal    ${deleted_id}    ${execution_id}
+
+Clear Finished History
+    ${result}=    Clear History
+    Log    deleted=${result.deleted_count} skipped_running=${result.skipped_running_count}
+```
+
+`Delete Execution` only removes finished executions or transfers. `Clear History` removes finished history for the authenticated client identity and leaves running items in place.
+
+PTY-oriented Robot keywords are also available:
+
+- `Start Shell Command With PTY`
+- `Start Shell Command Async With PTY`
+- `Start Shell Session With PTY`
+- `Start Shell Session Async With PTY`
+
+Shell methods also accept `use_pty=True` plus optional `pty_rows` and `pty_cols`:
+
+```python
+execution = client.start_shell_command("printf 'hello from pty\\n'", shell_binary="/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+session = client.start_shell_session("/bin/sh", use_pty=True, pty_rows=24, pty_cols=80)
+session.resize_pty(40, 100)
+```
+
+PTY mode is implemented for shell commands and shell sessions on Unix-like platforms and on Windows through ConPTY.
+
+## Ansible
+
+Install the optional extra if needed:
+
+```bash
+.venv/bin/pip install -e './sdk/python[ansible]'
+```
+
+Run the packaged connection plugin with the example inventory and playbook:
+
+```bash
+export PYTHONPATH="$PWD/sdk/python"
+export ANSIBLE_CONNECTION_PLUGINS="$PWD/sdk/python/cmdra_client/ansible_plugins"
+export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-local"
+export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-remote"
+mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
+
+.venv/bin/ansible-playbook \
+  -i sdk/python/examples/ansible/inventory.ini \
+  sdk/python/examples/ansible/ping.yml
+```
+
+The Ansible connection plugin is limited to command execution and file transfer. History deletion and clear-history remain SDK and operator-tool operations.
+
+## Pytest
+
+See `sdk/python/tests/README.md` for the exact test commands.
+
+## CI Commands
+
+From the repository root:
+
+```bash
+./scripts/ci-python.sh
+./scripts/ci-verify-version.sh
+./scripts/ci-verify-generated.sh
+./scripts/build-python-package.sh
+```
+
+## Python Package Build
+
+From the repository root:
+
+```bash
+./scripts/build-python-package.sh
+```

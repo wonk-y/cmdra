@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	agentv1 "cmdagent/gen/agent/v1"
-	"cmdagent/internal/tui/attachterm"
-	"cmdagent/pkg/cmdagentclient"
+	agentv1 "cmdra/gen/agent/v1"
+	"cmdra/internal/tui/attachterm"
+	"cmdra/pkg/cmdraclient"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -148,8 +148,8 @@ func newKeyMap() keyMap {
 }
 
 type app struct {
-	client *cmdagentclient.Client
-	conn   cmdagentclient.DialConfig
+	client *cmdraclient.Client
+	conn   cmdraclient.DialConfig
 
 	width  int
 	height int
@@ -248,7 +248,7 @@ type uploadDoneMsg struct {
 type downloadDoneMsg struct {
 	localPath string
 	remote    []string
-	resp      *cmdagentclient.DownloadResult
+	resp      *cmdraclient.DownloadResult
 	err       error
 }
 
@@ -277,7 +277,7 @@ type historyClearedMsg struct {
 	err                 error
 }
 
-func New(client *cmdagentclient.Client, cfg cmdagentclient.DialConfig) tea.Model {
+func New(client *cmdraclient.Client, cfg cmdraclient.DialConfig) tea.Model {
 	sp := spinner.New()
 	sp.Spinner = spinner.Line
 	detail := viewport.New(0, 0)
@@ -333,7 +333,7 @@ func New(client *cmdagentclient.Client, cfg cmdagentclient.DialConfig) tea.Model
 		keys:           newKeyMap(),
 		help:           h,
 		spinner:        sp,
-		debugPTY:       os.Getenv("CMDAGENTUI_PTY_DEBUG") != "",
+		debugPTY:       os.Getenv("CMDRAUI_PTY_DEBUG") != "",
 		section:        sectionExecutions,
 		focus:          focusList,
 		selection:      map[section]int{},
@@ -1062,7 +1062,7 @@ func (a *app) renderTransferForm(width, height int) string {
 		lines = append(lines,
 			"Local Path:", a.transferInputs[0].View(),
 			"Remote Path:", a.transferInputs[1].View(),
-			"", a.styles.muted.Render("Submit with enter. Uploads overwrite by default, matching cmdagentctl."),
+			"", a.styles.muted.Render("Submit with enter. Uploads overwrite by default, matching cmdractl."),
 		)
 	case transferModeDownload:
 		lines = append(lines,
@@ -1081,7 +1081,7 @@ func (a *app) renderTransferForm(width, height int) string {
 }
 
 func (a *app) renderConnectionView(width, height int) string {
-	lines := []string{a.styles.panelTitle.Render("Connection"), "", "Address:", a.connectInputs[0].View(), "CA PEM:", a.connectInputs[1].View(), "Client Cert PEM:", a.connectInputs[2].View(), "Client Key PEM:", a.connectInputs[3].View(), "Server Name Override:", a.connectInputs[4].View(), "", a.styles.muted.Render("Connection editing is informational in v1. Launch cmdagentui with the desired TLS flags."), "", renderKeyValue(a.styles, "TLS verify", fmt.Sprintf("skip=%t", a.conn.InsecureSkipVerify))}
+	lines := []string{a.styles.panelTitle.Render("Connection"), "", "Address:", a.connectInputs[0].View(), "CA PEM:", a.connectInputs[1].View(), "Client Cert PEM:", a.connectInputs[2].View(), "Client Key PEM:", a.connectInputs[3].View(), "Server Name Override:", a.connectInputs[4].View(), "", a.styles.muted.Render("Connection editing is informational in v1. Launch cmdraui with the desired TLS flags."), "", renderKeyValue(a.styles, "TLS verify", fmt.Sprintf("skip=%t", a.conn.InsecureSkipVerify))}
 	return lipgloss.NewStyle().Width(width).Height(height).MaxHeight(height).Render(strings.Join(lines, "\n"))
 }
 
@@ -1127,7 +1127,7 @@ func (a *app) refreshCmd() tea.Cmd {
 	return loadExecutionsCmd(a.client, a.runningOnly)
 }
 
-func loadExecutionsCmd(client *cmdagentclient.Client, runningOnly bool) tea.Cmd {
+func loadExecutionsCmd(client *cmdraclient.Client, runningOnly bool) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -1149,7 +1149,7 @@ func (a *app) loadDetailForSelection() tea.Cmd {
 	return loadDetailCmd(a.client, selected.GetExecutionId(), a.section == sectionExecutions && a.showOutput)
 }
 
-func loadDetailCmd(client *cmdagentclient.Client, executionID string, includeOutput bool) tea.Cmd {
+func loadDetailCmd(client *cmdraclient.Client, executionID string, includeOutput bool) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -1251,7 +1251,7 @@ func (a *app) submitTransferForm() (tea.Cmd, error) {
 	}
 }
 
-func startArgvCmd(client *cmdagentclient.Client, binary string, args []string) tea.Cmd {
+func startArgvCmd(client *cmdraclient.Client, binary string, args []string) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
@@ -1260,11 +1260,11 @@ func startArgvCmd(client *cmdagentclient.Client, binary string, args []string) t
 	}
 }
 
-func startShellCmd(client *cmdagentclient.Client, shellBinary, command string, usePTY bool, ptyRows, ptyCols uint32) tea.Cmd {
+func startShellCmd(client *cmdraclient.Client, shellBinary, command string, usePTY bool, ptyRows, ptyCols uint32) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
-		execMeta, err := client.StartShellCommandWithOptions(ctx, shellBinary, command, cmdagentclient.ShellOptions{
+		execMeta, err := client.StartShellCommandWithOptions(ctx, shellBinary, command, cmdraclient.ShellOptions{
 			UsePTY:  usePTY,
 			PTYRows: ptyRows,
 			PTYCols: ptyCols,
@@ -1273,11 +1273,11 @@ func startShellCmd(client *cmdagentclient.Client, shellBinary, command string, u
 	}
 }
 
-func startSessionCmd(client *cmdagentclient.Client, shellBinary string, args []string, usePTY bool, ptyRows, ptyCols uint32) tea.Cmd {
+func startSessionCmd(client *cmdraclient.Client, shellBinary string, args []string, usePTY bool, ptyRows, ptyCols uint32) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
-		execMeta, err := client.StartShellSessionWithOptions(ctx, shellBinary, args, cmdagentclient.ShellOptions{
+		execMeta, err := client.StartShellSessionWithOptions(ctx, shellBinary, args, cmdraclient.ShellOptions{
 			UsePTY:  usePTY,
 			PTYRows: ptyRows,
 			PTYCols: ptyCols,
@@ -1286,35 +1286,35 @@ func startSessionCmd(client *cmdagentclient.Client, shellBinary string, args []s
 	}
 }
 
-func uploadFileCmd(client *cmdagentclient.Client, localPath, remotePath string) tea.Cmd {
+func uploadFileCmd(client *cmdraclient.Client, localPath, remotePath string) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		overwrite := true
-		resp, err := client.UploadFile(ctx, localPath, remotePath, cmdagentclient.UploadOptions{Overwrite: &overwrite})
+		resp, err := client.UploadFile(ctx, localPath, remotePath, cmdraclient.UploadOptions{Overwrite: &overwrite})
 		return uploadDoneMsg{resp: resp, err: err}
 	}
 }
 
-func downloadFileCmd(client *cmdagentclient.Client, remotePath, localPath string, chunkSize int) tea.Cmd {
+func downloadFileCmd(client *cmdraclient.Client, remotePath, localPath string, chunkSize int) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		resp, err := client.DownloadFile(ctx, remotePath, localPath, cmdagentclient.DownloadOptions{ChunkSize: chunkSize})
+		resp, err := client.DownloadFile(ctx, remotePath, localPath, cmdraclient.DownloadOptions{ChunkSize: chunkSize})
 		return downloadDoneMsg{localPath: localPath, remote: []string{remotePath}, resp: resp, err: err}
 	}
 }
 
-func downloadArchiveCmd(client *cmdagentclient.Client, paths []string, localPath string, chunkSize int) tea.Cmd {
+func downloadArchiveCmd(client *cmdraclient.Client, paths []string, localPath string, chunkSize int) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		resp, err := client.DownloadArchive(ctx, paths, localPath, cmdagentclient.DownloadOptions{ChunkSize: chunkSize})
+		resp, err := client.DownloadArchive(ctx, paths, localPath, cmdraclient.DownloadOptions{ChunkSize: chunkSize})
 		return downloadDoneMsg{localPath: localPath, remote: paths, resp: resp, err: err}
 	}
 }
 
-func cancelExecutionCmd(client *cmdagentclient.Client, executionID string, grace time.Duration) tea.Cmd {
+func cancelExecutionCmd(client *cmdraclient.Client, executionID string, grace time.Duration) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -1323,7 +1323,7 @@ func cancelExecutionCmd(client *cmdagentclient.Client, executionID string, grace
 	}
 }
 
-func deleteHistoryCmd(client *cmdagentclient.Client, executionID string) tea.Cmd {
+func deleteHistoryCmd(client *cmdraclient.Client, executionID string) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -1332,7 +1332,7 @@ func deleteHistoryCmd(client *cmdagentclient.Client, executionID string) tea.Cmd
 	}
 }
 
-func clearHistoryCmd(client *cmdagentclient.Client) tea.Cmd {
+func clearHistoryCmd(client *cmdraclient.Client) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -1347,7 +1347,7 @@ func clearHistoryCmd(client *cmdagentclient.Client) tea.Cmd {
 	}
 }
 
-func attachConnectCmd(client *cmdagentclient.Client, executionID string) tea.Cmd {
+func attachConnectCmd(client *cmdraclient.Client, executionID string) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithCancel(context.Background())
 		session, err := client.Attach(ctx, executionID, true, 0)
@@ -1413,7 +1413,7 @@ func (a *app) syncDetailViewport() {
 		case sectionNewTransfer:
 			a.detailViewport.SetContent("Use tab to focus the main form. Then use tab and shift+tab to move between fields, [ and ] to switch transfer mode, and enter to submit.")
 		case sectionConnection:
-			a.detailViewport.SetContent("This panel shows the active connection settings. In v1 it is informational; restart cmdagentui with different flags to reconnect.")
+			a.detailViewport.SetContent("This panel shows the active connection settings. In v1 it is informational; restart cmdraui with different flags to reconnect.")
 		default:
 			a.detailViewport.SetContent("Select an item to inspect it.")
 		}
@@ -2051,8 +2051,8 @@ func max(a, b int) int {
 	return b
 }
 
-// Run launches the cmdagent terminal UI.
-func Run(client *cmdagentclient.Client, cfg cmdagentclient.DialConfig) error {
+// Run launches the cmdra terminal UI.
+func Run(client *cmdraclient.Client, cfg cmdraclient.DialConfig) error {
 	p := tea.NewProgram(New(client, cfg), tea.WithAltScreen())
 	_, err := p.Run()
 	if err != nil {

@@ -9,8 +9,8 @@ sidebar_position: 4
 From source in PowerShell:
 
 ```powershell
-go build -o cmdagentd.exe .\cmd\cmdagentd
-go build -o cmdagentctl.exe .\cmd\cmdagentctl
+go build -o cmdrad.exe .\cmd\cmdrad
+go build -o cmdractl.exe .\cmd\cmdractl
 ```
 
 For release artifacts, use the cross-build script from the repository root:
@@ -19,11 +19,11 @@ For release artifacts, use the cross-build script from the repository root:
 ./scripts/build-release.sh
 ```
 
-Then copy `dist/release/<version>/windows-amd64/cmdagentd.exe` or `windows-arm64/cmdagentd.exe` to the target host.
+Then copy `dist/release/<version>/windows-amd64/cmdrad.exe` or `windows-arm64/cmdrad.exe` to the target host.
 
 ## Create a daemon config file
 
-Create `dev/cmdagentd.json`:
+Create `dev/cmdrad.json`:
 
 ```json
 {
@@ -43,15 +43,15 @@ Create `dev/cmdagentd.json`:
 ## Run in the foreground
 
 ```powershell
-.\cmdagentd.exe run --config .\dev/cmdagentd.json
+.\cmdrad.exe run --config .\dev/cmdrad.json
 ```
 
 ## Install as a Windows service
 
 ```powershell
-.\cmdagentd.exe service install --name cmdagentd --config .\dev/cmdagentd.json
-.\cmdagentd.exe service start --name cmdagentd
-.\cmdagentd.exe service status --name cmdagentd
+.\cmdrad.exe service install --name cmdrad --config .\dev/cmdrad.json
+.\cmdrad.exe service start --name cmdrad
+.\cmdrad.exe service status --name cmdrad
 ```
 
 `service install` configures the service for automatic start at boot.
@@ -61,8 +61,8 @@ The installed service uses the native Windows Service Control Manager execution 
 ## Remove the service
 
 ```powershell
-.\cmdagentd.exe service stop --name cmdagentd
-.\cmdagentd.exe service uninstall --name cmdagentd
+.\cmdrad.exe service stop --name cmdrad
+.\cmdrad.exe service uninstall --name cmdrad
 ```
 
 ## Smoke-test the service flow
@@ -79,20 +79,20 @@ Use the Windows PTY smoke helper when you want to validate PTY-backed shell comm
 powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows.ps1
 ```
 
-The script starts a foreground daemon with the repository's development certificates, runs a PTY-backed `cmd.exe` command, then starts a PTY-backed `cmd.exe` session and verifies that `cmdagentctl attach` can drive it.
+The script starts a foreground daemon with the repository's development certificates, runs a PTY-backed `cmd.exe` command, then starts a PTY-backed `cmd.exe` session and verifies that `cmdractl attach` can drive it.
 
-## Interactive cmdagentui PTY validation on Windows
+## Interactive cmdraui PTY validation on Windows
 
-When you want to validate the fullscreen PTY attach experience in `cmdagentui` on a real Windows host, use the interactive helper:
+When you want to validate the fullscreen PTY attach experience in `cmdraui` on a real Windows host, use the interactive helper:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdagentui.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdraui.ps1
 ```
 
 That helper:
 
 - starts a foreground daemon with the development certificates
-- launches `cmdagentui` with the matching mTLS flags
+- launches `cmdraui` with the matching mTLS flags
 - leaves cleanup to the script after you exit the TUI
 
 Use it together with:

@@ -9,9 +9,9 @@ fi
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
-binary="${BINARY:-$repo_root/cmdagentd}"
-config="${CONFIG:-$repo_root/dev/cmdagentd.json}"
-name="${NAME:-cmdagentd-smoke}"
+binary="${BINARY:-$repo_root/cmdrad}"
+config="${CONFIG:-$repo_root/dev/cmdrad.json}"
+name="${NAME:-cmdrad-smoke}"
 
 "$binary" service install --name "$name" --binary "$binary" --config "$config"
 "$binary" service start --name "$name"

@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Python SDK
 
-The Python client package lives under `sdk/python/cmdagent_client` and can be installed in editable mode from the repository root.
+The Python client package lives under `sdk/python/cmdra_client` and can be installed in editable mode from the repository root.
 
 ## Install the package
 
@@ -21,7 +21,7 @@ With optional extras:
 ## Create a client
 
 ```python
-from cmdagent_client import Client
+from cmdra_client import Client
 
 client = Client(
     address="127.0.0.1:8443",
@@ -96,20 +96,20 @@ archive = client.download_archive(["/tmp"], "./tmp.zip")
 
 All examples read these environment variables:
 
-- `CMDAGENT_ADDRESS`
-- `CMDAGENT_CA`
-- `CMDAGENT_CERT`
-- `CMDAGENT_KEY`
-- `CMDAGENT_SERVER_NAME` optional
+- `CMDRA_ADDRESS`
+- `CMDRA_CA`
+- `CMDRA_CERT`
+- `CMDRA_KEY`
+- `CMDRA_SERVER_NAME` optional
 
 Run them from the repository root:
 
 ```bash
 export PYTHONPATH="$PWD/sdk/python"
-export CMDAGENT_ADDRESS=127.0.0.1:8443
-export CMDAGENT_CA=dev/certs/ca.crt
-export CMDAGENT_CERT=dev/certs/client-a.crt
-export CMDAGENT_KEY=dev/certs/client-a.key
+export CMDRA_ADDRESS=127.0.0.1:8443
+export CMDRA_CA=dev/certs/ca.crt
+export CMDRA_CERT=dev/certs/client-a.crt
+export CMDRA_KEY=dev/certs/client-a.key
 
 python3 sdk/python/examples/basic_usage.py
 python3 sdk/python/examples/list_executions.py

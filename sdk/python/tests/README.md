@@ -4,8 +4,8 @@ From the repository root:
 
 ```bash
 export PYTHONPATH="$PWD/sdk/python"
-export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-local"
-export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-remote"
+export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-local"
+export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-remote"
 mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
 
 .venv/bin/pytest -q ./sdk/python/tests
@@ -14,7 +14,7 @@ mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
 Run the optional performance check:
 
 ```bash
-export CMDAGENT_RUN_PERF=1
+export CMDRA_RUN_PERF=1
 .venv/bin/pytest -q ./sdk/python/tests/test_performance_checks.py
 ```
 

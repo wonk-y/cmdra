@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	agentv1 "cmdagent/gen/agent/v1"
-	"cmdagent/internal/auth"
-	"cmdagent/internal/execution"
+	agentv1 "cmdra/gen/agent/v1"
+	"cmdra/internal/auth"
+	"cmdra/internal/execution"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

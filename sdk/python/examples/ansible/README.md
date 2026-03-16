@@ -4,9 +4,9 @@ Set the plugin path and temp directories, then run:
 
 ```bash
 export PYTHONPATH="$PWD/sdk/python"
-export ANSIBLE_CONNECTION_PLUGINS="$PWD/sdk/python/cmdagent_client/ansible_plugins"
-export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-local"
-export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-remote"
+export ANSIBLE_CONNECTION_PLUGINS="$PWD/sdk/python/cmdra_client/ansible_plugins"
+export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-local"
+export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-remote"
 mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
 
 .venv/bin/ansible-playbook -i sdk/python/examples/ansible/inventory.ini sdk/python/examples/ansible/ping.yml

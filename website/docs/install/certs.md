@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Generate Development Certificates
 
-CmdAgent requires mTLS. The daemon presents a server certificate, and each connecting client presents its own client certificate.
+Cmdra requires mTLS. The daemon presents a server certificate, and each connecting client presents its own client certificate.
 
 For local development, generate a small CA plus one server certificate and development client certificates:
 

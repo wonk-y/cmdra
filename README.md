@@ -1,6 +1,6 @@
-# CmdAgent
+# Cmdra
 
-CmdAgent is a long-running Go daemon that exposes a gRPC API over mutual TLS for:
+Cmdra is a long-running Go daemon that exposes a gRPC API over mutual TLS for:
 
 - starting argv commands
 - starting shell command strings
@@ -19,12 +19,12 @@ Execution and transfer metadata are stored in SQLite under `-data-dir`. Output i
 ## Build
 
 ```bash
-go build ./cmd/cmdagentd
-go build ./cmd/cmdagentctl
-go build ./cmd/cmdagentui
-./cmdagentd version
-./cmdagentctl version
-./cmdagentui version
+go build ./cmd/cmdrad
+go build ./cmd/cmdractl
+go build ./cmd/cmdraui
+./cmdrad version
+./cmdractl version
+./cmdraui version
 ```
 
 ## Proto Generation
@@ -54,7 +54,7 @@ Notes:
 ## Run The Daemon
 
 ```bash
-./cmdagentd run \
+./cmdrad run \
   --listen-address 127.0.0.1:8443 \
   --server-cert dev/certs/server.crt \
   --server-key dev/certs/server.key \
@@ -67,7 +67,7 @@ Notes:
 Backward-compatible direct flag invocation also works:
 
 ```bash
-./cmdagentd \
+./cmdrad \
   --listen-address 127.0.0.1:8443 \
   --server-cert dev/certs/server.crt \
   --server-key dev/certs/server.key \
@@ -78,7 +78,7 @@ Backward-compatible direct flag invocation also works:
 
 ## JSON Config
 
-`cmdagentd` can also load a JSON config file:
+`cmdrad` can also load a JSON config file:
 
 ```json
 {
@@ -98,7 +98,7 @@ Backward-compatible direct flag invocation also works:
 Run it with:
 
 ```bash
-./cmdagentd run --config ./dev/cmdagentd.json
+./cmdrad run --config ./dev/cmdrad.json
 ```
 
 ## Service Management
@@ -108,44 +108,44 @@ Run it with:
 ### Linux
 
 ```bash
-sudo ./cmdagentd service install \
-  --name cmdagentd \
-  --config ./dev/cmdagentd.json
+sudo ./cmdrad service install \
+  --name cmdrad \
+  --config ./dev/cmdrad.json
 
-sudo ./cmdagentd service start --name cmdagentd
-sudo ./cmdagentd service status --name cmdagentd
-sudo ./cmdagentd service uninstall --name cmdagentd
+sudo ./cmdrad service start --name cmdrad
+sudo ./cmdrad service status --name cmdrad
+sudo ./cmdrad service uninstall --name cmdrad
 ```
 
 ### macOS
 
 ```bash
-sudo ./cmdagentd service install \
-  --name cmdagentd \
-  --config ./dev/cmdagentd.json
+sudo ./cmdrad service install \
+  --name cmdrad \
+  --config ./dev/cmdrad.json
 
-sudo ./cmdagentd service start --name cmdagentd
-sudo ./cmdagentd service status --name cmdagentd
-sudo ./cmdagentd service uninstall --name cmdagentd
+sudo ./cmdrad service start --name cmdrad
+sudo ./cmdrad service status --name cmdrad
+sudo ./cmdrad service uninstall --name cmdrad
 ```
 
 ### Windows
 
 ```powershell
-cmdagentd.exe service install --name cmdagentd --config .\dev/cmdagentd.json
-cmdagentd.exe service start --name cmdagentd
-cmdagentd.exe service status --name cmdagentd
-cmdagentd.exe service uninstall --name cmdagentd
+cmdrad.exe service install --name cmdrad --config .\dev/cmdrad.json
+cmdrad.exe service start --name cmdrad
+cmdrad.exe service status --name cmdrad
+cmdrad.exe service uninstall --name cmdrad
 ```
 
 On Windows, the installed service uses the native Service Control Manager execution path.
 
-## `cmdagentctl`
+## `cmdractl`
 
 Connection flags are shared across subcommands:
 
 ```bash
-./cmdagentctl \
+./cmdractl \
   --address 127.0.0.1:8443 \
   --ca dev/certs/ca.crt \
   --cert dev/certs/client-a.crt \
@@ -156,24 +156,24 @@ Connection flags are shared across subcommands:
 Examples:
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-argv --binary /bin/echo hello
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-shell --command "printf 'hello\n'"
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-shell --pty --pty-rows 24 --pty-cols 80 --command "printf 'hello from a PTY\n'"
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-session --shell /bin/sh --pty --pty-rows 24 --pty-cols 80
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key get --id exec-123
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key delete --id exec-123
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key clear-history --yes
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key upload --local ./README.md --remote /tmp/README.md
-./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key download --remote /tmp/README.md --local ./README.copy
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-argv --binary /bin/echo hello
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-shell --command "printf 'hello\n'"
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-shell --pty --pty-rows 24 --pty-cols 80 --command "printf 'hello from a PTY\n'"
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-session --shell /bin/sh --pty --pty-rows 24 --pty-cols 80
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key get --id exec-123
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key delete --id exec-123
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key clear-history --yes
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key upload --local ./README.md --remote /tmp/README.md
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key download --remote /tmp/README.md --local ./README.copy
 ```
 
 `get` includes persisted output by internally calling both `GetExecution` and `ReadOutput`.
 `delete` removes one finished execution or transfer from persisted history. `clear-history --yes` removes all finished history for the authenticated identity and reports how many running items were preserved.
 `--pty` is available on `start-shell` and `start-session`. `--pty-rows` and `--pty-cols` set the initial terminal size. `attach` automatically pushes terminal size changes for PTY-backed executions and switches the local terminal into raw mode for PTY sessions. PTY mode merges terminal-style output into one stream and is implemented on Unix-like platforms plus Windows through ConPTY.
 
-## `cmdagentui`
+## `cmdraui`
 
-`cmdagentui` is a Bubble Tea TUI built on top of the Go SDK. It exposes the same operational surface as `cmdagentctl` in a keyboard-driven interface for:
+`cmdraui` is a Bubble Tea TUI built on top of the Go SDK. It exposes the same operational surface as `cmdractl` in a keyboard-driven interface for:
 
 - listing executions and transfers
 - inspecting metadata and persisted output
@@ -189,7 +189,7 @@ Examples:
 Start it with the same connection flags:
 
 ```bash
-./cmdagentui \
+./cmdraui \
   --address 127.0.0.1:8443 \
   --ca dev/certs/ca.crt \
   --cert dev/certs/client-a.crt \
@@ -233,9 +233,9 @@ Attach behavior splits by execution type:
 - PTY-backed executions use the dedicated fullscreen emulator-backed attach view
 - non-PTY executions stay on the simpler transcript-oriented attach view
 
-PTY mode is useful for prompt-oriented shells and terminal-aware programs. `cmdagentui` automatically sends its current dimensions when attaching to a PTY-backed execution and updates the remote PTY as the terminal is resized. If a PTY-backed process exits after `ctrl+g c`, `cmdagentui` returns to the normal 3-pane view automatically. PTY mode merges interactive output into one stream and is implemented on Unix-like platforms plus Windows through ConPTY. `cmdagentui` is still not a fully complete terminal emulator, so full-screen TUIs and complex cursor-control applications can still render imperfectly there even though `cmdagentctl` PTY attach is tighter now.
+PTY mode is useful for prompt-oriented shells and terminal-aware programs. `cmdraui` automatically sends its current dimensions when attaching to a PTY-backed execution and updates the remote PTY as the terminal is resized. If a PTY-backed process exits after `ctrl+g c`, `cmdraui` returns to the normal 3-pane view automatically. PTY mode merges interactive output into one stream and is implemented on Unix-like platforms plus Windows through ConPTY. `cmdraui` is still not a fully complete terminal emulator, so full-screen TUIs and complex cursor-control applications can still render imperfectly there even though `cmdractl` PTY attach is tighter now.
 
-Set `CMDAGENTUI_PTY_DEBUG=1` before starting `cmdagentui` if you want a small timing/counter line under the PTY view while tuning performance.
+Set `CMDRAUI_PTY_DEBUG=1` before starting `cmdraui` if you want a small timing/counter line under the PTY view while tuning performance.
 
 Manual PTY verification checklist:
 
@@ -259,14 +259,14 @@ See also:
 
 - `sdk/README.md`
 - `sdk/go/README.md`
-- `dev/cmdagentd.json`
+- `dev/cmdrad.json`
 
 ## SDKs And Wrappers
 
-- Go SDK: `pkg/cmdagentclient`
-- Python SDK: `sdk/python/cmdagent_client`
-- RobotFramework library: `sdk/python/cmdagent_client/robot_library.py`
-- Ansible connection plugin: `sdk/python/cmdagent_client/ansible_plugins/connection/cmdagent.py`
+- Go SDK: `pkg/cmdraclient`
+- Python SDK: `sdk/python/cmdra_client`
+- RobotFramework library: `sdk/python/cmdra_client/robot_library.py`
+- Ansible connection plugin: `sdk/python/cmdra_client/ansible_plugins/connection/cmdra.py`
 
 See:
 
@@ -332,9 +332,9 @@ Optional repository variables:
 Individual packages can still be run directly:
 
 ```bash
-go test ./pkg/cmdagentclient
-go test ./cmd/cmdagentctl
-go test ./cmd/cmdagentd
+go test ./pkg/cmdraclient
+go test ./cmd/cmdractl
+go test ./cmd/cmdrad
 ```
 
 ## CI Verification
@@ -370,7 +370,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\service-smoke-windows.ps1
 
 When you have access to a Windows host, you can run an automated ConPTY smoke test that:
 
-- starts a foreground `cmdagentd`
+- starts a foreground `cmdrad`
 - verifies a PTY-backed shell command
 - verifies a PTY-backed shell session plus attach flow
 
@@ -378,15 +378,15 @@ When you have access to a Windows host, you can run an automated ConPTY smoke te
 powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows.ps1
 ```
 
-The script defaults to the repository's `cmdagentd.exe`, `cmdagentctl.exe`, and `dev/certs/*` development certificates.
+The script defaults to the repository's `cmdrad.exe`, `cmdractl.exe`, and `dev/certs/*` development certificates.
 
-For interactive `cmdagentui` PTY validation on a Windows host, use:
+For interactive `cmdraui` PTY validation on a Windows host, use:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdagentui.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdraui.ps1
 ```
 
-That helper starts `cmdagentd`, launches `cmdagentui` with the matching mTLS flags, and cleans up when you exit the TUI. Use it with:
+That helper starts `cmdrad`, launches `cmdraui` with the matching mTLS flags, and cleans up when you exit the TUI. Use it with:
 
 - `docs/pty-attach-checklist.md`
 

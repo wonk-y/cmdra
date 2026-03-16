@@ -11,22 +11,22 @@ const sections = [
   {
     title: 'Install the daemon',
     description:
-      'Set up cmdagentd in foreground or service mode on Linux, macOS, and Windows, with mTLS and CN-based access control.',
+      'Set up cmdrad in foreground or service mode on Linux, macOS, and Windows, with mTLS and CN-based access control.',
     to: 'docs/install/linux',
     eyebrow: 'Operations',
   },
   {
-    title: 'Operate with cmdagentctl',
+    title: 'Operate with cmdractl',
     description:
       'Run commands, attach to shell sessions, inspect metadata, and move files through the operator CLI.',
-    to: 'docs/cli/cmdagentctl',
+    to: 'docs/cli/cmdractl',
     eyebrow: 'CLI',
   },
   {
-    title: 'Operate with cmdagentui',
+    title: 'Operate with cmdraui',
     description:
       'Use the Bubble Tea terminal UI to inspect executions and transfers, launch new work, and attach to live sessions.',
-    to: 'docs/cli/cmdagentui',
+    to: 'docs/cli/cmdraui',
     eyebrow: 'TUI',
   },
   {
@@ -52,12 +52,12 @@ function Hero() {
     <section className={styles.hero}>
       <div className={clsx('container', styles.heroGrid)}>
         <div className={styles.heroCopy}>
-          <p className={styles.kicker}>CmdAgent Documentation</p>
+          <p className={styles.kicker}>Cmdra Documentation</p>
           <Heading as="h1" className={styles.title}>
             Remote execution docs for the daemon, the CLI, and every supported client surface.
           </Heading>
           <p className={styles.subtitle}>
-            CmdAgent exposes argv commands, shell commands, persistent shell sessions, output replay,
+            Cmdra exposes argv commands, shell commands, persistent shell sessions, output replay,
             and file transfer over gRPC with mutual TLS. This site documents installation and usage
             across Linux, macOS, Windows, the CLI, the TUI, Go, Python, Robot Framework, and Ansible.
           </p>
@@ -71,12 +71,12 @@ function Hero() {
           <div className={styles.panelHeader}>Quick start</div>
           <pre className={styles.commandBlock}>
             <code>{`./scripts/generate-dev-certs.sh dev/certs
-./cmdagentd run --config ./dev/cmdagentd.json
-./cmdagentctl --address 127.0.0.1:8443 \
+./cmdrad run --config ./dev/cmdrad.json
+./cmdractl --address 127.0.0.1:8443 \
   --ca dev/certs/ca.crt \
   --cert dev/certs/client-a.crt \
   --key dev/certs/client-a.key list
-./cmdagentui --address 127.0.0.1:8443 \
+./cmdraui --address 127.0.0.1:8443 \
   --ca dev/certs/ca.crt \
   --cert dev/certs/client-a.crt \
   --key dev/certs/client-a.key`}</code>
@@ -116,7 +116,7 @@ export default function Home(): ReactElement {
   return (
     <Layout
       title="Documentation"
-      description="Installation and usage guides for cmdagentd, cmdagentctl, cmdagentui, the Go SDK, the Python SDK, Robot Framework, and Ansible.">
+      description="Installation and usage guides for cmdrad, cmdractl, cmdraui, the Go SDK, the Python SDK, Robot Framework, and Ansible.">
       <Hero />
       <SectionCards />
     </Layout>

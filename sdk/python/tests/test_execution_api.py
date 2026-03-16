@@ -4,7 +4,7 @@ import time
 
 import grpc
 
-from cmdagent_client.gen.agent.v1 import agent_pb2
+from cmdra_client.gen.agent.v1 import agent_pb2
 
 from .conftest import wait_for_completion
 

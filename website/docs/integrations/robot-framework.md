@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Robot Framework
 
-The Robot wrapper lives at `sdk/python/cmdagent_client/robot_library.py` and exposes the Python SDK as Robot keywords.
+The Robot wrapper lives at `sdk/python/cmdra_client/robot_library.py` and exposes the Python SDK as Robot keywords.
 
 ## Install the Robot extra
 
@@ -16,7 +16,7 @@ The Robot wrapper lives at `sdk/python/cmdagent_client/robot_library.py` and exp
 
 ```robot
 *** Settings ***
-Library    cmdagent_client.robot_library.CmdAgentLibrary    ${ADDRESS}    ${CA_CERT}    ${CLIENT_CERT}    ${CLIENT_KEY}
+Library    cmdra_client.robot_library.CmdraLibrary    ${ADDRESS}    ${CA_CERT}    ${CLIENT_CERT}    ${CLIENT_KEY}
 ```
 
 ## Available keyword families

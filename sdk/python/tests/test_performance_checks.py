@@ -8,7 +8,7 @@ import pytest
 from .conftest import wait_for_completion
 
 
-@pytest.mark.skipif(os.environ.get("CMDAGENT_RUN_PERF") != "1", reason="set CMDAGENT_RUN_PERF=1 to run timing checks")
+@pytest.mark.skipif(os.environ.get("CMDRA_RUN_PERF") != "1", reason="set CMDRA_RUN_PERF=1 to run timing checks")
 def test_start_command_latency(managed_daemon):
     client = managed_daemon["client_a"]
 

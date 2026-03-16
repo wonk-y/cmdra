@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"cmdagent/sdk/go/examples/exampleutil"
+	"cmdra/sdk/go/examples/exampleutil"
 )
 
 func main() {

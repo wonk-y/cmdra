@@ -1,5 +1,5 @@
-- hosts: cmdagent
+- hosts: cmdra
   gather_facts: false
   tasks:
-    - name: run command through cmdagent
+    - name: run command through cmdra
       command: /bin/echo ansible-ok

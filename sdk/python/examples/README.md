@@ -2,20 +2,20 @@
 
 All examples read these environment variables:
 
-- `CMDAGENT_ADDRESS`
-- `CMDAGENT_CA`
-- `CMDAGENT_CERT`
-- `CMDAGENT_KEY`
-- `CMDAGENT_SERVER_NAME` (optional)
+- `CMDRA_ADDRESS`
+- `CMDRA_CA`
+- `CMDRA_CERT`
+- `CMDRA_KEY`
+- `CMDRA_SERVER_NAME` (optional)
 
 Run examples from the repository root:
 
 ```bash
 export PYTHONPATH="$PWD/sdk/python"
-export CMDAGENT_ADDRESS=127.0.0.1:8443
-export CMDAGENT_CA=dev/certs/ca.crt
-export CMDAGENT_CERT=dev/certs/client-a.crt
-export CMDAGENT_KEY=dev/certs/client-a.key
+export CMDRA_ADDRESS=127.0.0.1:8443
+export CMDRA_CA=dev/certs/ca.crt
+export CMDRA_CERT=dev/certs/client-a.crt
+export CMDRA_KEY=dev/certs/client-a.key
 
 python3 sdk/python/examples/basic_usage.py
 python3 sdk/python/examples/list_executions.py

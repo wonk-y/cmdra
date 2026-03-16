@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 
-	"cmdagent/sdk/go/examples/exampleutil"
-	"cmdagent/pkg/cmdagentclient"
+	"cmdra/pkg/cmdraclient"
+	"cmdra/sdk/go/examples/exampleutil"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 	defer client.Close()
-	resp, err := client.UploadFile(context.Background(), *local, *remote, cmdagentclient.UploadOptions{})
+	resp, err := client.UploadFile(context.Background(), *local, *remote, cmdraclient.UploadOptions{})
 	if err != nil {
 		panic(err)
 	}

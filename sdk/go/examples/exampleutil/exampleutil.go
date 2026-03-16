@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"os"
 
-	"cmdagent/pkg/cmdagentclient"
+	"cmdra/pkg/cmdraclient"
 )
 
-func NewClient(ctx context.Context) (*cmdagentclient.Client, error) {
-	address := os.Getenv("CMDAGENT_ADDRESS")
-	ca := os.Getenv("CMDAGENT_CA")
-	cert := os.Getenv("CMDAGENT_CERT")
-	key := os.Getenv("CMDAGENT_KEY")
-	serverName := os.Getenv("CMDAGENT_SERVER_NAME")
+func NewClient(ctx context.Context) (*cmdraclient.Client, error) {
+	address := os.Getenv("CMDRA_ADDRESS")
+	ca := os.Getenv("CMDRA_CA")
+	cert := os.Getenv("CMDRA_CERT")
+	key := os.Getenv("CMDRA_KEY")
+	serverName := os.Getenv("CMDRA_SERVER_NAME")
 	if address == "" || ca == "" || cert == "" || key == "" {
-		return nil, fmt.Errorf("CMDAGENT_ADDRESS, CMDAGENT_CA, CMDAGENT_CERT, and CMDAGENT_KEY are required")
+		return nil, fmt.Errorf("CMDRA_ADDRESS, CMDRA_CA, CMDRA_CERT, and CMDRA_KEY are required")
 	}
-	return cmdagentclient.Dial(ctx, cmdagentclient.DialConfig{
+	return cmdraclient.Dial(ctx, cmdraclient.DialConfig{
 		Address:        address,
 		CAFile:         ca,
 		ClientCertFile: cert,

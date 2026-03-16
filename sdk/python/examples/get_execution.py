@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 
 from _client import new_client
-from cmdagent_client import format_execution
+from cmdra_client import format_execution
 
 
 parser = argparse.ArgumentParser()

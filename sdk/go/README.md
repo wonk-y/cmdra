@@ -1,6 +1,6 @@
 # Go SDK
 
-The exported Go client library lives at `pkg/cmdagentclient`.
+The exported Go client library lives at `pkg/cmdraclient`.
 
 The `sdk/go/` tree contains example programs that exercise the public client API:
 

@@ -1,5 +1,5 @@
 *** Settings ***
-Library    cmdagent_client.robot_library.CmdAgentLibrary    ${ADDRESS}    ${CA_CERT}    ${CLIENT_CERT}    ${CLIENT_KEY}
+Library    cmdra_client.robot_library.CmdraLibrary    ${ADDRESS}    ${CA_CERT}    ${CLIENT_CERT}    ${CLIENT_KEY}
 
 *** Test Cases ***
 List Executions Works

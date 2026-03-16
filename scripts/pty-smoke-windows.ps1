@@ -1,6 +1,6 @@
 param(
-  [string]$DaemonBinary = (Join-Path $PSScriptRoot "..\cmdagentd.exe"),
-  [string]$CtlBinary = (Join-Path $PSScriptRoot "..\cmdagentctl.exe"),
+  [string]$DaemonBinary = (Join-Path $PSScriptRoot "..\cmdrad.exe"),
+  [string]$CtlBinary = (Join-Path $PSScriptRoot "..\cmdractl.exe"),
   [string]$Address = "127.0.0.1:8443",
   [string]$ServerCert = (Join-Path $PSScriptRoot "..\dev\certs\server.crt"),
   [string]$ServerKey = (Join-Path $PSScriptRoot "..\dev\certs\server.key"),
@@ -16,7 +16,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 function New-TempDir {
-  $path = Join-Path ([System.IO.Path]::GetTempPath()) ("cmdagent-pty-smoke-" + [guid]::NewGuid().ToString("N"))
+  $path = Join-Path ([System.IO.Path]::GetTempPath()) ("cmdra-pty-smoke-" + [guid]::NewGuid().ToString("N"))
   New-Item -ItemType Directory -Path $path | Out-Null
   return $path
 }
@@ -54,7 +54,7 @@ function Invoke-Ctl {
   $output = & $CtlBinary @allArgs 2>&1 | Out-String
   $exitCode = $LASTEXITCODE
   if (-not $AllowFailure -and $exitCode -ne 0) {
-    throw "cmdagentctl failed with exit code $exitCode`n$output"
+    throw "cmdractl failed with exit code $exitCode`n$output"
   }
   return @{
     Output = $output
@@ -71,7 +71,7 @@ function Wait-ForDaemon {
     }
     Start-Sleep -Milliseconds 250
   }
-  throw "cmdagentd did not become ready within ${TimeoutSeconds}s"
+  throw "cmdrad did not become ready within ${TimeoutSeconds}s"
 }
 
 function Get-ExecutionId {
@@ -159,8 +159,8 @@ if (-not (Test-Path $DataDir)) {
 }
 
 $auditLog = Join-Path $DataDir "audit.log"
-$daemonStdout = Join-Path $DataDir "cmdagentd-stdout.log"
-$daemonStderr = Join-Path $DataDir "cmdagentd-stderr.log"
+$daemonStdout = Join-Path $DataDir "cmdrad-stdout.log"
+$daemonStderr = Join-Path $DataDir "cmdrad-stderr.log"
 $daemonArgs = @(
   "run",
   "--listen-address", $Address,
@@ -211,8 +211,8 @@ try {
   Write-Host "Shell execution id:  $shellId"
   Write-Host "Session execution id: $sessionId"
   Write-Host ""
-  Write-Host "For interactive cmdagentui PTY validation, run:"
-  Write-Host "  powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdagentui.ps1"
+  Write-Host "For interactive cmdraui PTY validation, run:"
+  Write-Host "  powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdraui.ps1"
 } finally {
   if ($daemon -and -not $daemon.HasExited) {
     $daemon.Kill()

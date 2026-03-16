@@ -13,9 +13,9 @@ out_dir="${OUT_DIR:-dist/release/$version}"
 mkdir -p "$out_dir"
 
 ldflags=(
-  "-X" "cmdagent/internal/buildinfo.Version=$version"
-  "-X" "cmdagent/internal/buildinfo.Commit=$commit"
-  "-X" "cmdagent/internal/buildinfo.Date=$date"
+  "-X" "cmdra/internal/buildinfo.Version=$version"
+  "-X" "cmdra/internal/buildinfo.Commit=$commit"
+  "-X" "cmdra/internal/buildinfo.Date=$date"
 )
 
 build_one() {
@@ -27,9 +27,9 @@ build_one() {
   fi
   local target_dir="$out_dir/${goos}-${goarch}"
   mkdir -p "$target_dir"
-  GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdagentd$ext" ./cmd/cmdagentd
-  GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdagentctl$ext" ./cmd/cmdagentctl
-  GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdagentui$ext" ./cmd/cmdagentui
+  GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdrad$ext" ./cmd/cmdrad
+  GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdractl$ext" ./cmd/cmdractl
+  GOOS="$goos" GOARCH="$goarch" go build -ldflags "${ldflags[*]}" -o "$target_dir/cmdraui$ext" ./cmd/cmdraui
 }
 
 build_one linux amd64

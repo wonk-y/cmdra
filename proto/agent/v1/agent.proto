@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package agent.v1;
 
-option go_package = "cmdagent/gen/agent/v1;agentv1";
+option go_package = "cmdra/gen/agent/v1;agentv1";
 
 import "google/protobuf/timestamp.proto";
 

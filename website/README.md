@@ -1,4 +1,4 @@
-# CmdAgent Docusaurus Site
+# Cmdra Docusaurus Site
 
 This site is currently pinned to Docusaurus `3.6.3` so it remains compatible with the repository's Node 18 toolchain.
 
@@ -16,7 +16,7 @@ The generated static output is written to `website/build`.
 The site documents:
 
 - daemon install and service usage on Linux, macOS, and Windows
-- `cmdagentctl` and `cmdagentui` operations, including `delete` and `clear-history`
+- `cmdractl` and `cmdraui` operations, including `delete` and `clear-history`
 - Go and Python SDK usage
 - Robot Framework and Ansible integration notes
 

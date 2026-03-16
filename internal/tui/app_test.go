@@ -4,8 +4,8 @@ import (
 	"io"
 	"testing"
 
-	agentv1 "cmdagent/gen/agent/v1"
-	"cmdagent/pkg/cmdagentclient"
+	agentv1 "cmdra/gen/agent/v1"
+	"cmdra/pkg/cmdraclient"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -42,7 +42,7 @@ func (f *fakeAttachSession) CloseSend() error {
 }
 
 func TestAttachCancelClosesOnExit(t *testing.T) {
-	model := New(nil, cmdagentclient.DialConfig{}).(*app)
+	model := New(nil, cmdraclient.DialConfig{}).(*app)
 	session := &fakeAttachSession{}
 	cancelled := false
 	model.attach = &attachState{
@@ -86,7 +86,7 @@ func TestAttachCancelClosesOnExit(t *testing.T) {
 }
 
 func TestAttachRemoteExitKeepsViewUntilDetached(t *testing.T) {
-	model := New(nil, cmdagentclient.DialConfig{}).(*app)
+	model := New(nil, cmdraclient.DialConfig{}).(*app)
 	session := &fakeAttachSession{}
 	model.attach = &attachState{
 		executionID: "exec-2",
@@ -116,7 +116,7 @@ func TestAttachRemoteExitKeepsViewUntilDetached(t *testing.T) {
 }
 
 func TestAttachDetachPrefixQClosesImmediately(t *testing.T) {
-	model := New(nil, cmdagentclient.DialConfig{}).(*app)
+	model := New(nil, cmdraclient.DialConfig{}).(*app)
 	session := &fakeAttachSession{}
 	cancelled := false
 	model.attach = &attachState{
@@ -158,7 +158,7 @@ func TestKeyMsgBytesSupportsPasteAndExtendedKeys(t *testing.T) {
 }
 
 func TestCommandFormClearsFieldsAfterSuccessfulSubmit(t *testing.T) {
-	model := New(nil, cmdagentclient.DialConfig{}).(*app)
+	model := New(nil, cmdraclient.DialConfig{}).(*app)
 	model.section = sectionNewCommand
 	model.focus = focusForm
 	model.commandMode = commandModeShell
@@ -185,7 +185,7 @@ func TestCommandFormClearsFieldsAfterSuccessfulSubmit(t *testing.T) {
 }
 
 func TestTransferFormClearsFieldsAfterSuccessfulSubmit(t *testing.T) {
-	model := New(nil, cmdagentclient.DialConfig{}).(*app)
+	model := New(nil, cmdraclient.DialConfig{}).(*app)
 	model.section = sectionNewTransfer
 	model.focus = focusForm
 	model.transferMode = transferModeArchive

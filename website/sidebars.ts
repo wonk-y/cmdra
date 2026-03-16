@@ -5,7 +5,7 @@ const sidebars: SidebarsConfig = {
     'intro',
     {
       type: 'category',
-      label: 'Install cmdagentd',
+      label: 'Install cmdrad',
       items: [
         'install/certs',
         'install/linux',
@@ -17,7 +17,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Use the CLI and TUI',
       collapsed: false,
-      items: ['cli/cmdagentctl', 'cli/cmdagentui', 'cli/pty-attach-checklist'],
+      items: ['cli/cmdractl', 'cli/cmdraui', 'cli/pty-attach-checklist'],
     },
     {
       type: 'category',

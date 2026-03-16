@@ -23,7 +23,7 @@ EOF
 
 openssl genrsa -out "$out_dir/ca.key" 2048
 openssl req -x509 -new -nodes -key "$out_dir/ca.key" -sha256 -days 3650 \
-  -subj "/CN=CmdAgent Dev CA" -out "$out_dir/ca.crt"
+  -subj "/CN=Cmdra Dev CA" -out "$out_dir/ca.crt"
 
 openssl genrsa -out "$out_dir/server.key" 2048
 openssl req -new -key "$out_dir/server.key" -subj "/CN=localhost" -out "$out_dir/server.csr"

@@ -10,8 +10,8 @@ from typing import Iterator
 
 import pytest
 
-from cmdagent_client import Client
-from cmdagent_client.gen.agent.v1 import agent_pb2
+from cmdra_client import Client
+from cmdra_client.gen.agent.v1 import agent_pb2
 
 
 def _find_free_port() -> int:
@@ -30,7 +30,7 @@ def _wait_for_daemon(client: Client, timeout: float = 10.0) -> None:
         except Exception as exc:  # pragma: no cover - startup polling
             last_error = exc
             time.sleep(0.1)
-    raise RuntimeError(f"cmdagentd did not become ready: {last_error}")
+    raise RuntimeError(f"cmdrad did not become ready: {last_error}")
 
 
 def _wait_for_port(address: str, timeout: float = 10.0) -> None:
@@ -45,7 +45,7 @@ def _wait_for_port(address: str, timeout: float = 10.0) -> None:
         except OSError as exc:  # pragma: no cover - startup polling
             last_error = exc
             time.sleep(0.1)
-    raise RuntimeError(f"cmdagentd did not open {address}: {last_error}")
+    raise RuntimeError(f"cmdrad did not open {address}: {last_error}")
 
 
 @pytest.fixture(scope="session")
@@ -60,10 +60,10 @@ def _go_env(repo_root: Path) -> dict[str, str]:
 
 
 @pytest.fixture(scope="session")
-def built_cmdagentd(repo_root: Path, tmp_path_factory: pytest.TempPathFactory) -> Path:
-    output = tmp_path_factory.mktemp("bin") / ("cmdagentd.exe" if os.name == "nt" else "cmdagentd")
+def built_cmdrad(repo_root: Path, tmp_path_factory: pytest.TempPathFactory) -> Path:
+    output = tmp_path_factory.mktemp("bin") / ("cmdrad.exe" if os.name == "nt" else "cmdrad")
     subprocess.run(
-        ["go", "build", "-o", str(output), "./cmd/cmdagentd"],
+        ["go", "build", "-o", str(output), "./cmd/cmdrad"],
         cwd=repo_root,
         check=True,
         env=_go_env(repo_root),
@@ -92,20 +92,20 @@ def dev_certs(repo_root: Path, tmp_path_factory: pytest.TempPathFactory) -> dict
 
 @pytest.fixture
 def managed_daemon(
-    built_cmdagentd: Path,
+    built_cmdrad: Path,
     dev_certs: dict[str, Path],
     tmp_path: Path,
 ) -> Iterator[dict[str, object]]:
     address = f"127.0.0.1:{_find_free_port()}"
     data_dir = tmp_path / "data"
     audit_log = tmp_path / "audit.log"
-    stdout_log = tmp_path / "cmdagentd.stdout.log"
-    stderr_log = tmp_path / "cmdagentd.stderr.log"
+    stdout_log = tmp_path / "cmdrad.stdout.log"
+    stderr_log = tmp_path / "cmdrad.stderr.log"
 
     with stdout_log.open("wb") as stdout_fh, stderr_log.open("wb") as stderr_fh:
         process = subprocess.Popen(
             [
-                str(built_cmdagentd),
+                str(built_cmdrad),
                 "run",
                 "--listen-address",
                 address,

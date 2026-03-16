@@ -23,7 +23,7 @@ From the repository root:
 ## Basic Usage
 
 ```python
-from cmdagent_client import Client
+from cmdra_client import Client
 
 client = Client(
     address="127.0.0.1:8443",
@@ -135,9 +135,9 @@ Run the packaged connection plugin with the example inventory and playbook:
 
 ```bash
 export PYTHONPATH="$PWD/sdk/python"
-export ANSIBLE_CONNECTION_PLUGINS="$PWD/sdk/python/cmdagent_client/ansible_plugins"
-export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-local"
-export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-remote"
+export ANSIBLE_CONNECTION_PLUGINS="$PWD/sdk/python/cmdra_client/ansible_plugins"
+export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-local"
+export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdra-ansible-remote"
 mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
 
 .venv/bin/ansible-playbook \

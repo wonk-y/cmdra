@@ -1,0 +1,14 @@
+grpcio>=1.78.0
+protobuf>=6.31.1
+
+[ansible]
+ansible-core>=2.17
+
+[dev]
+pytest>=8.0
+grpcio-tools>=1.78.0
+build>=1.4.0
+wheel>=0.45.0
+
+[robot]
+robotframework>=7.0
