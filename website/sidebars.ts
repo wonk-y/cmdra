@@ -17,7 +17,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Use the CLI and TUI',
       collapsed: false,
-      items: ['cli/cmdagentctl', 'cli/cmdagentui'],
+      items: ['cli/cmdagentctl', 'cli/cmdagentui', 'cli/pty-attach-checklist'],
     },
     {
       type: 'category',

@@ -70,7 +70,7 @@ function Hero() {
         <div className={styles.heroPanel}>
           <div className={styles.panelHeader}>Quick start</div>
           <pre className={styles.commandBlock}>
-            <code>{`./scripts/generate-dev-certs.sh certs
+            <code>{`./scripts/generate-dev-certs.sh dev/certs
 ./cmdagentd run --config ./dev/cmdagentd.json
 ./cmdagentctl --address 127.0.0.1:8443 \
   --ca dev/certs/ca.crt \

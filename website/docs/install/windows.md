@@ -80,3 +80,21 @@ powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows.ps1
 ```
 
 The script starts a foreground daemon with the repository's development certificates, runs a PTY-backed `cmd.exe` command, then starts a PTY-backed `cmd.exe` session and verifies that `cmdagentctl attach` can drive it.
+
+## Interactive cmdagentui PTY validation on Windows
+
+When you want to validate the fullscreen PTY attach experience in `cmdagentui` on a real Windows host, use the interactive helper:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdagentui.ps1
+```
+
+That helper:
+
+- starts a foreground daemon with the development certificates
+- launches `cmdagentui` with the matching mTLS flags
+- leaves cleanup to the script after you exit the TUI
+
+Use it together with:
+
+- [`PTY Attach Checklist`](pathname:///docs/cli/pty-attach-checklist)

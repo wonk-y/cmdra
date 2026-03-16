@@ -9,7 +9,7 @@ CmdAgent requires mTLS. The daemon presents a server certificate, and each conne
 For local development, generate a small CA plus one server certificate and development client certificates:
 
 ```bash
-./scripts/generate-dev-certs.sh certs
+./scripts/generate-dev-certs.sh dev/certs
 ```
 
 This creates:

@@ -101,16 +101,29 @@ ctrl+g h   show attach help
 ctrl+d     send EOF
 ```
 
-This mode is intended for raw-pipe interaction. It is not a full terminal emulator or PTY client.
+Attach mode has two behaviors:
+
+- PTY-backed executions switch into a dedicated fullscreen emulator-backed attach view
+- non-PTY executions stay on the simpler transcript-oriented attach view
+
+The PTY-backed path is the default attach behavior whenever the selected execution was started with `Use PTY=true`.
 
 PTY notes:
 
 - PTY can be requested from the `New Command` shell and session forms
 - `cmdagentui` sends its current dimensions when attaching to a PTY-backed execution and updates the remote PTY as the terminal is resized
+- when the attached PTY-backed process exits after `ctrl+g c`, `cmdagentui` returns to the normal 3-pane layout automatically
 - PTY is useful when you want prompt-oriented shell behavior
 - PTY-backed output is terminal-style and effectively merged into one stream
 - PTY mode is implemented on Unix-like platforms and on Windows through ConPTY
-- `cmdagentui` is still not a full terminal emulator, so full-screen terminal applications can still render imperfectly even with PTY enabled
+- `cmdagentui` is still not a fully complete terminal emulator, so full-screen terminal applications can still render imperfectly even with PTY enabled
+- set `CMDAGENTUI_PTY_DEBUG=1` before starting `cmdagentui` if you want a small timing/counter line under the PTY view while tuning performance
+
+## PTY validation checklist
+
+Use the operator checklist when validating prompt behavior, line editing, resize propagation, attach lifecycle, and `cmdagentctl` comparison behavior:
+
+- [`PTY Attach Checklist`](pathname:///docs/cli/pty-attach-checklist)
 
 ## Recommended workflow
 

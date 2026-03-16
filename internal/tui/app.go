@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"time"
 
 	agentv1 "cmdagent/gen/agent/v1"
+	"cmdagent/internal/tui/attachterm"
 	"cmdagent/pkg/cmdagentclient"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -153,10 +155,11 @@ type app struct {
 	height int
 	ready  bool
 
-	styles  styles
-	keys    keyMap
-	help    help.Model
-	spinner spinner.Model
+	styles   styles
+	keys     keyMap
+	help     help.Model
+	spinner  spinner.Model
+	debugPTY bool
 
 	section section
 	focus   focusArea
@@ -195,12 +198,22 @@ type app struct {
 type attachState struct {
 	executionID string
 	usesPTY     bool
-	session     *cmdagentclient.AttachSession
+	session     attachSession
 	cancel      context.CancelFunc
 	viewport    viewport.Model
+	terminal    *attachterm.Model
 	transcript  strings.Builder
 	awaitingCmd bool
 	exited      bool
+	closeOnExit bool
+}
+
+type attachSession interface {
+	Recv() (*agentv1.AttachEvent, error)
+	SendStdin(data []byte, eof bool) error
+	CancelExecution() error
+	ResizePTY(rows, cols uint32) error
+	CloseSend() error
 }
 
 type destructiveAction int
@@ -240,7 +253,7 @@ type downloadDoneMsg struct {
 }
 
 type attachConnectedMsg struct {
-	session *cmdagentclient.AttachSession
+	session attachSession
 	cancel  context.CancelFunc
 	ack     *agentv1.Execution
 	err     error
@@ -320,6 +333,7 @@ func New(client *cmdagentclient.Client, cfg cmdagentclient.DialConfig) tea.Model
 		keys:           newKeyMap(),
 		help:           h,
 		spinner:        sp,
+		debugPTY:       os.Getenv("CMDAGENTUI_PTY_DEBUG") != "",
 		section:        sectionExecutions,
 		focus:          focusList,
 		selection:      map[section]int{},
@@ -337,7 +351,7 @@ func New(client *cmdagentclient.Client, cfg cmdagentclient.DialConfig) tea.Model
 }
 
 func (a *app) Init() tea.Cmd {
-	return tea.Batch(a.spinner.Tick, a.refreshCmd(), tickCmd())
+	return tea.Batch(a.spinner.Tick, a.refreshCmd(), tickCmd(), literalMsgCmd(tea.EnableBracketedPaste()))
 }
 
 func tickCmd() tea.Cmd {
@@ -440,9 +454,13 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		vp := viewport.New(a.width-4, max(1, a.height-6))
 		a.attach = &attachState{executionID: msg.ack.GetExecutionId(), usesPTY: msg.ack.GetUsesPty(), session: msg.session, cancel: msg.cancel, viewport: vp}
-		a.attach.transcript.WriteString(renderExecutionSummary(msg.ack))
-		a.attach.transcript.WriteString("\n")
-		a.attach.viewport.SetContent(a.attach.transcript.String())
+		if a.attach.usesPTY {
+			a.attach.terminal = attachterm.New(max(1, a.width-4), max(1, a.height-4))
+		} else {
+			a.attach.transcript.WriteString(renderExecutionSummary(msg.ack))
+			a.attach.transcript.WriteString("\n")
+			a.attach.viewport.SetContent(a.attach.transcript.String())
+		}
 		a.setStatus("Attach mode active. Use ctrl+g q to detach, ctrl+g c to cancel, ctrl+g h for help.")
 		cmds = append(cmds, a.recvAttachCmd())
 		if a.attach.usesPTY {
@@ -464,17 +482,35 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch payload := msg.event.GetPayload().(type) {
 		case *agentv1.AttachEvent_Output:
-			a.attach.transcript.Write(payload.Output.GetData())
-			a.attach.viewport.SetContent(a.attach.transcript.String())
-			a.attach.viewport.GotoBottom()
+			if a.attach.usesPTY && a.attach.terminal != nil {
+				a.attach.terminal.Write(payload.Output.GetData())
+			} else {
+				a.attach.transcript.Write(payload.Output.GetData())
+				a.attach.viewport.SetContent(a.attach.transcript.String())
+				a.attach.viewport.GotoBottom()
+			}
 			return a, a.recvAttachCmd()
 		case *agentv1.AttachEvent_Exit:
-			a.attach.transcript.WriteString("\nExecution exited:\n")
-			a.attach.transcript.WriteString(renderExecutionSummary(payload.Exit.GetExecution()))
-			a.attach.viewport.SetContent(a.attach.transcript.String())
-			a.attach.viewport.GotoBottom()
+			if a.attach.usesPTY && a.attach.terminal != nil {
+				if a.attach.closeOnExit {
+					a.detach()
+					a.setStatus("Attached execution canceled and closed.")
+					return a, a.refreshCmd()
+				}
+				a.setStatus("Execution exited. Press ctrl+g q to leave attach mode.")
+			} else {
+				a.attach.transcript.WriteString("\nExecution exited:\n")
+				a.attach.transcript.WriteString(renderExecutionSummary(payload.Exit.GetExecution()))
+				a.attach.viewport.SetContent(a.attach.transcript.String())
+				a.attach.viewport.GotoBottom()
+				if a.attach.closeOnExit {
+					a.detach()
+					a.setStatus("Attached execution canceled and closed.")
+					return a, a.refreshCmd()
+				}
+				a.setStatus("Execution exited. Press ctrl+g q to leave attach mode.")
+			}
 			a.attach.exited = true
-			a.setStatus("Execution exited. Press ctrl+g q to leave attach mode.")
 			return a, a.refreshCmd()
 		case *agentv1.AttachEvent_Error:
 			a.setError(errors.New(payload.Error.GetMessage()))
@@ -803,7 +839,8 @@ func (a *app) handleAttachKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			if err := a.attach.session.CancelExecution(); err != nil {
 				a.setError(err)
 			} else {
-				a.setStatus("Cancel request sent to attached execution.")
+				a.attach.closeOnExit = true
+				a.setStatus("Cancel request sent to attached execution. Waiting for exit…")
 			}
 			return a, nil
 		case "h":
@@ -828,7 +865,7 @@ func (a *app) handleAttachKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a, sendAttachInputCmd(a.attach.session, nil, true)
 	}
 
-	if msg.Type == tea.KeyUp || msg.Type == tea.KeyDown || msg.Type == tea.KeyPgUp || msg.Type == tea.KeyPgDown {
+	if !a.attach.usesPTY && (msg.Type == tea.KeyUp || msg.Type == tea.KeyDown || msg.Type == tea.KeyPgUp || msg.Type == tea.KeyPgDown) {
 		var cmd tea.Cmd
 		a.attach.viewport, cmd = a.attach.viewport.Update(msg)
 		return a, cmd
@@ -1052,6 +1089,14 @@ func (a *app) renderAttachView() string {
 	}
 	banner := a.styles.attachBanner.Width(max(10, a.width-4)).Render(fmt.Sprintf("Attached to %s  |  ctrl+g q detach  ctrl+g c cancel  ctrl+g h help  ctrl+d EOF", a.attach.executionID))
 	view := a.attach.viewport.View()
+	if a.attach.usesPTY && a.attach.terminal != nil {
+		view = a.attach.terminal.View()
+		if a.debugPTY {
+			stats := a.attach.terminal.Stats()
+			debugLine := a.styles.muted.Render(fmt.Sprintf("writes=%d bytes=%d last_write=%s last_bytes=%d frames=%d last_render=%s", stats.Writes, stats.Bytes, stats.LastWrite.Round(time.Millisecond), stats.LastWriteBytes, stats.Frames, stats.LastRender.Round(time.Millisecond)))
+			view = lipgloss.JoinVertical(lipgloss.Left, view, "", debugLine)
+		}
+	}
 	return a.styles.doc.Render(lipgloss.JoinVertical(lipgloss.Left, banner, view))
 }
 
@@ -1068,6 +1113,9 @@ func (a *app) resize() {
 	if a.attach != nil {
 		a.attach.viewport.Width = max(1, a.width-4)
 		a.attach.viewport.Height = max(1, a.height-4)
+		if a.attach.usesPTY && a.attach.terminal != nil {
+			a.attach.terminal.Resize(max(1, a.width-4), max(1, a.height-4))
+		}
 	}
 	_ = topHeight
 }
@@ -1330,7 +1378,7 @@ func (a *app) recvAttachCmd() tea.Cmd {
 	}
 }
 
-func sendAttachInputCmd(session *cmdagentclient.AttachSession, data []byte, eof bool) tea.Cmd {
+func sendAttachInputCmd(session attachSession, data []byte, eof bool) tea.Cmd {
 	return func() tea.Msg {
 		if err := session.SendStdin(data, eof); err != nil {
 			return attachEventMsg{err: err}
@@ -1339,7 +1387,7 @@ func sendAttachInputCmd(session *cmdagentclient.AttachSession, data []byte, eof 
 	}
 }
 
-func attachResizeCmd(session *cmdagentclient.AttachSession, rows, cols uint32) tea.Cmd {
+func attachResizeCmd(session attachSession, rows, cols uint32) tea.Cmd {
 	return func() tea.Msg {
 		if rows == 0 || cols == 0 {
 			return nil
@@ -1814,11 +1862,74 @@ func keyMsgBytes(msg tea.KeyMsg) []byte {
 		return []byte("\n")
 	case tea.KeyTab:
 		return []byte("\t")
+	case tea.KeyShiftTab:
+		return []byte("\x1b[Z")
 	case tea.KeySpace:
 		return []byte(" ")
 	case tea.KeyBackspace:
 		return []byte{0x7f}
+	case tea.KeyDelete:
+		return []byte("\x1b[3~")
+	case tea.KeyHome:
+		return []byte("\x1b[H")
+	case tea.KeyEnd:
+		return []byte("\x1b[F")
+	case tea.KeyPgUp:
+		return []byte("\x1b[5~")
+	case tea.KeyPgDown:
+		return []byte("\x1b[6~")
+	case tea.KeyEsc:
+		return []byte{0x1b}
+	case tea.KeyCtrlA:
+		return []byte{0x01}
+	case tea.KeyCtrlB:
+		return []byte{0x02}
+	case tea.KeyCtrlE:
+		return []byte{0x05}
+	case tea.KeyCtrlF:
+		return []byte{0x06}
+	case tea.KeyCtrlK:
+		return []byte{0x0b}
+	case tea.KeyCtrlL:
+		return []byte{0x0c}
+	case tea.KeyCtrlN:
+		return []byte{0x0e}
+	case tea.KeyCtrlP:
+		return []byte{0x10}
+	case tea.KeyCtrlU:
+		return []byte{0x15}
+	case tea.KeyCtrlW:
+		return []byte{0x17}
+	case tea.KeyCtrlY:
+		return []byte{0x19}
+	case tea.KeyF1:
+		return []byte("\x1bOP")
+	case tea.KeyF2:
+		return []byte("\x1bOQ")
+	case tea.KeyF3:
+		return []byte("\x1bOR")
+	case tea.KeyF4:
+		return []byte("\x1bOS")
+	case tea.KeyF5:
+		return []byte("\x1b[15~")
+	case tea.KeyF6:
+		return []byte("\x1b[17~")
+	case tea.KeyF7:
+		return []byte("\x1b[18~")
+	case tea.KeyF8:
+		return []byte("\x1b[19~")
+	case tea.KeyF9:
+		return []byte("\x1b[20~")
+	case tea.KeyF10:
+		return []byte("\x1b[21~")
+	case tea.KeyF11:
+		return []byte("\x1b[23~")
+	case tea.KeyF12:
+		return []byte("\x1b[24~")
 	case tea.KeyRunes:
+		if msg.Paste {
+			return append(append([]byte("\x1b[200~"), []byte(string(msg.Runes))...), []byte("\x1b[201~")...)
+		}
 		return []byte(string(msg.Runes))
 	default:
 		switch msg.String() {
@@ -1830,9 +1941,29 @@ func keyMsgBytes(msg tea.KeyMsg) []byte {
 			return []byte("\x1b[D")
 		case "right":
 			return []byte("\x1b[C")
+		case "ctrl+up":
+			return []byte("\x1b[1;5A")
+		case "ctrl+down":
+			return []byte("\x1b[1;5B")
+		case "ctrl+right":
+			return []byte("\x1b[1;5C")
+		case "ctrl+left":
+			return []byte("\x1b[1;5D")
+		case "ctrl+home":
+			return []byte("\x1b[1;5H")
+		case "ctrl+end":
+			return []byte("\x1b[1;5F")
+		case "ctrl+pgup":
+			return []byte("\x1b[5;5~")
+		case "ctrl+pgdown":
+			return []byte("\x1b[6;5~")
 		}
 	}
 	return nil
+}
+
+func literalMsgCmd(msg tea.Msg) tea.Cmd {
+	return func() tea.Msg { return msg }
 }
 
 func nextFocus(s section, current focusArea) focusArea {

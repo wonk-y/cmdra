@@ -210,6 +210,9 @@ try {
   Write-Host "Windows PTY smoke test passed."
   Write-Host "Shell execution id:  $shellId"
   Write-Host "Session execution id: $sessionId"
+  Write-Host ""
+  Write-Host "For interactive cmdagentui PTY validation, run:"
+  Write-Host "  powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdagentui.ps1"
 } finally {
   if ($daemon -and -not $daemon.HasExited) {
     $daemon.Kill()

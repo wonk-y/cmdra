@@ -228,7 +228,18 @@ Attach mode reserves `ctrl+g` as the escape prefix:
 - `ctrl+g h`: show attach help
 - `ctrl+d`: send EOF
 
-PTY mode is useful for prompt-oriented shells and terminal-aware programs. `cmdagentui` automatically sends its current dimensions when attaching to a PTY-backed execution and updates the remote PTY as the terminal is resized. PTY mode merges interactive output into one stream and is implemented on Unix-like platforms plus Windows through ConPTY. `cmdagentui` is still not a full terminal emulator, so full-screen TUIs and complex cursor-control applications can still render imperfectly there even though `cmdagentctl` PTY attach is tighter now.
+Attach behavior splits by execution type:
+
+- PTY-backed executions use the dedicated fullscreen emulator-backed attach view
+- non-PTY executions stay on the simpler transcript-oriented attach view
+
+PTY mode is useful for prompt-oriented shells and terminal-aware programs. `cmdagentui` automatically sends its current dimensions when attaching to a PTY-backed execution and updates the remote PTY as the terminal is resized. If a PTY-backed process exits after `ctrl+g c`, `cmdagentui` returns to the normal 3-pane view automatically. PTY mode merges interactive output into one stream and is implemented on Unix-like platforms plus Windows through ConPTY. `cmdagentui` is still not a fully complete terminal emulator, so full-screen TUIs and complex cursor-control applications can still render imperfectly there even though `cmdagentctl` PTY attach is tighter now.
+
+Set `CMDAGENTUI_PTY_DEBUG=1` before starting `cmdagentui` if you want a small timing/counter line under the PTY view while tuning performance.
+
+Manual PTY verification checklist:
+
+- `docs/pty-attach-checklist.md`
 
 ## Layout
 
@@ -241,6 +252,7 @@ High-level repository structure:
 - `sdk/go/`: Go SDK examples and SDK-facing docs
 - `sdk/python/`: Python SDK package, examples, tests, and wrapper integrations
 - `dev/`: local development config, certificates, and runtime state
+- `docs/`: repo-local operator checklists and other non-site reference material
 - `website/`: Docusaurus documentation site
 
 See also:
@@ -367,6 +379,16 @@ powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows.ps1
 ```
 
 The script defaults to the repository's `cmdagentd.exe`, `cmdagentctl.exe`, and `dev/certs/*` development certificates.
+
+For interactive `cmdagentui` PTY validation on a Windows host, use:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\pty-smoke-windows-cmdagentui.ps1
+```
+
+That helper starts `cmdagentd`, launches `cmdagentui` with the matching mTLS flags, and cleans up when you exit the TUI. Use it with:
+
+- `docs/pty-attach-checklist.md`
 
 ## Release Packaging
 
