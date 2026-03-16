@@ -32,7 +32,7 @@ jobs:
         run: |
           python -m venv .venv
           .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -e './python[ansible,robot,dev]'
+          .venv/bin/pip install -e './sdk/python[ansible,robot,dev]'
 
       - name: Run Python tests
         run: ./scripts/ci-python.sh
@@ -80,7 +80,7 @@ jobs:
         run: |
           python -m venv .venv
           .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -e './python[dev]'
+          .venv/bin/pip install -e './sdk/python[dev]'
 
       - name: Verify package versions are aligned
         run: ./scripts/ci-verify-version.sh
@@ -128,4 +128,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cmdagent-python-dist
-          path: dist/python
+          path: dist/sdk/python

@@ -64,11 +64,11 @@ function Hero() {
           <div className={styles.panelHeader}>Quick start</div>
           <pre className={styles.commandBlock}>
             <code>{`./scripts/generate-dev-certs.sh certs
-./cmdagentd run --config ./cmdagentd.json
+./cmdagentd run --config ./dev/cmdagentd.json
 ./cmdagentctl --address 127.0.0.1:8443 \
-  --ca certs/ca.crt \
-  --cert certs/client-a.crt \
-  --key certs/client-a.key list`}</code>
+  --ca dev/certs/ca.crt \
+  --cert dev/certs/client-a.crt \
+  --key dev/certs/client-a.key list`}</code>
           </pre>
         </div>
       </div>

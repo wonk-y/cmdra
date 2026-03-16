@@ -10,12 +10,12 @@ import tomllib
 
 root = Path(".").resolve()
 root_version = (root / "VERSION").read_text(encoding="utf-8").strip()
-pyproject = tomllib.loads((root / "python/pyproject.toml").read_text(encoding="utf-8"))
+pyproject = tomllib.loads((root / "sdk/python/pyproject.toml").read_text(encoding="utf-8"))
 python_version = pyproject["project"]["version"]
 
 if root_version != python_version:
     raise SystemExit(
-        f"version mismatch: VERSION={root_version!r} python/pyproject.toml={python_version!r}"
+        f"version mismatch: VERSION={root_version!r} sdk/python/pyproject.toml={python_version!r}"
     )
 
 print(f"version aligned: {root_version}")

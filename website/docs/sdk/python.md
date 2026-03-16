@@ -4,20 +4,18 @@ sidebar_position: 2
 
 # Python SDK
 
-The Python client package lives under `python/cmdagent_client` and can be installed in editable mode from the repository root.
+The Python client package lives under `sdk/python/cmdagent_client` and can be installed in editable mode from the repository root.
 
 ## Install the package
 
 ```bash
-cd python
-../.venv/bin/pip install -e .
+.venv/bin/pip install -e ./sdk/python
 ```
 
 With optional extras:
 
 ```bash
-cd python
-../.venv/bin/pip install -e '.[ansible,robot,dev]'
+.venv/bin/pip install -e './sdk/python[ansible,robot,dev]'
 ```
 
 ## Create a client
@@ -27,9 +25,9 @@ from cmdagent_client import Client
 
 client = Client(
     address="127.0.0.1:8443",
-    ca_cert="certs/ca.crt",
-    client_cert="certs/client-a.crt",
-    client_key="certs/client-a.key",
+    ca_cert="dev/certs/ca.crt",
+    client_cert="dev/certs/client-a.crt",
+    client_key="dev/certs/client-a.key",
 )
 ```
 
@@ -85,16 +83,16 @@ All examples read these environment variables:
 Run them from the repository root:
 
 ```bash
-export PYTHONPATH="$PWD/python"
+export PYTHONPATH="$PWD/sdk/python"
 export CMDAGENT_ADDRESS=127.0.0.1:8443
-export CMDAGENT_CA=certs/ca.crt
-export CMDAGENT_CERT=certs/client-a.crt
-export CMDAGENT_KEY=certs/client-a.key
+export CMDAGENT_CA=dev/certs/ca.crt
+export CMDAGENT_CERT=dev/certs/client-a.crt
+export CMDAGENT_KEY=dev/certs/client-a.key
 
-python3 examples/python_sdk/basic_usage.py
-python3 examples/python_sdk/list_executions.py
-python3 examples/python_sdk/get_execution.py --id exec-123
-python3 examples/python_sdk/upload_file.py --local ./README.md --remote /tmp/README.md
-python3 examples/python_sdk/download_file.py --remote /tmp/README.md --local ./README.copy
-python3 examples/python_sdk/download_archive.py --path /tmp --local ./tmp.zip
+python3 sdk/python/examples/basic_usage.py
+python3 sdk/python/examples/list_executions.py
+python3 sdk/python/examples/get_execution.py --id exec-123
+python3 sdk/python/examples/upload_file.py --local ./README.md --remote /tmp/README.md
+python3 sdk/python/examples/download_file.py --remote /tmp/README.md --local ./README.copy
+python3 sdk/python/examples/download_archive.py --path /tmp --local ./tmp.zip
 ```

@@ -10,7 +10,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 binary="${BINARY:-$repo_root/cmdagentd}"
-config="${CONFIG:-$repo_root/cmdagentd.json}"
+config="${CONFIG:-$repo_root/dev/cmdagentd.json}"
 name="${NAME:-cmdagentd-smoke}"
 
 "$binary" service install --name "$name" --binary "$binary" --config "$config"

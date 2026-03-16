@@ -4,6 +4,8 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
+export GOCACHE="${GOCACHE:-$repo_root/.gocache}"
+
 version="${VERSION:-$(cat VERSION)}"
 commit="${COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || echo unknown)}"
 date="${DATE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"

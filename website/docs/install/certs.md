@@ -14,13 +14,13 @@ For local development, generate a small CA plus one server certificate and devel
 
 This creates:
 
-- `certs/ca.crt`
-- `certs/server.crt`
-- `certs/server.key`
-- `certs/client-a.crt`
-- `certs/client-a.key`
-- `certs/client-b.crt`
-- `certs/client-b.key`
+- `dev/certs/ca.crt`
+- `dev/certs/server.crt`
+- `dev/certs/server.key`
+- `dev/certs/client-a.crt`
+- `dev/certs/client-a.key`
+- `dev/certs/client-b.crt`
+- `dev/certs/client-b.key`
 
 ## What matters for validation
 
@@ -33,7 +33,7 @@ This creates:
 ## Minimal development layout
 
 ```text
-certs/
+dev/certs/
   ca.crt
   server.crt
   server.key

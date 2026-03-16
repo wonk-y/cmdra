@@ -9,14 +9,13 @@ CmdAgent ships an Ansible connection plugin backed by the Python SDK.
 Plugin path:
 
 ```text
-python/cmdagent_client/ansible_plugins/connection/cmdagent.py
+sdk/python/cmdagent_client/ansible_plugins/connection/cmdagent.py
 ```
 
 ## Install the Ansible extra
 
 ```bash
-cd python
-../.venv/bin/pip install -e '.[ansible]'
+.venv/bin/pip install -e './sdk/python[ansible]'
 ```
 
 ## Set the plugin path
@@ -24,8 +23,8 @@ cd python
 From the repository root:
 
 ```bash
-export PYTHONPATH="$PWD/python"
-export ANSIBLE_CONNECTION_PLUGINS="$PWD/python/cmdagent_client/ansible_plugins"
+export PYTHONPATH="$PWD/sdk/python"
+export ANSIBLE_CONNECTION_PLUGINS="$PWD/sdk/python/cmdagent_client/ansible_plugins"
 export ANSIBLE_LOCAL_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-local"
 export ANSIBLE_REMOTE_TEMP="${TMPDIR:-/tmp}/cmdagent-ansible-remote"
 mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
@@ -45,8 +44,8 @@ The plugin reads:
 
 ```bash
 .venv/bin/ansible-playbook \
-  -i python/examples/ansible/inventory.ini \
-  python/examples/ansible/ping.yml
+  -i sdk/python/examples/ansible/inventory.ini \
+  sdk/python/examples/ansible/ping.yml
 ```
 
 ## What the plugin maps to

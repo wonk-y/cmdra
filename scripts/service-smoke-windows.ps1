@@ -1,6 +1,6 @@
 param(
   [string]$Binary = (Join-Path $PSScriptRoot "..\cmdagentd.exe"),
-  [string]$Config = (Join-Path $PSScriptRoot "..\cmdagentd.json"),
+  [string]$Config = (Join-Path $PSScriptRoot "..\dev/cmdagentd.json"),
   [string]$Name = "cmdagentd-smoke"
 )
 

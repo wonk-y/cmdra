@@ -9,6 +9,6 @@ if [ ! -x .venv/bin/python ]; then
   exit 1
 fi
 
-.venv/bin/python -m build --no-isolation ./python --outdir dist/python
+.venv/bin/python -m build --no-isolation ./sdk/python --outdir dist/sdk/python
 
-echo "python distributions written to dist/python"
+echo "python distributions written to dist/sdk/python"

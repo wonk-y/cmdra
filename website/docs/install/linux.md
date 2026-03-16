@@ -23,17 +23,17 @@ Then copy `dist/release/<version>/linux-amd64/cmdagentd` or `linux-arm64/cmdagen
 
 ## Create a daemon config file
 
-Create `cmdagentd.json`:
+Create `dev/cmdagentd.json`:
 
 ```json
 {
   "listen_address": "127.0.0.1:8443",
-  "server_cert_file": "certs/server.crt",
-  "server_key_file": "certs/server.key",
-  "client_ca_file": "certs/ca.crt",
+  "server_cert_file": "dev/certs/server.crt",
+  "server_key_file": "dev/certs/server.key",
+  "client_ca_file": "dev/certs/ca.crt",
   "allowed_client_cn": "client-a",
-  "data_dir": "data",
-  "audit_log_path": "data/audit.log",
+  "data_dir": "dev/data",
+  "audit_log_path": "dev/data/audit.log",
   "chunk_size": 32768,
   "flush_interval": "100ms",
   "grace_period": "5s"
@@ -43,7 +43,7 @@ Create `cmdagentd.json`:
 ## Run in the foreground
 
 ```bash
-./cmdagentd run --config ./cmdagentd.json
+./cmdagentd run --config ./dev/cmdagentd.json
 ```
 
 ## Install as a systemd service
@@ -51,7 +51,7 @@ Create `cmdagentd.json`:
 ```bash
 sudo ./cmdagentd service install \
   --name cmdagentd \
-  --config ./cmdagentd.json
+  --config ./dev/cmdagentd.json
 
 sudo ./cmdagentd service start --name cmdagentd
 sudo ./cmdagentd service status --name cmdagentd

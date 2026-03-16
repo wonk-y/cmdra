@@ -39,37 +39,37 @@ download-archive
 ```bash
 ./cmdagentctl \
   --address 127.0.0.1:8443 \
-  --ca certs/ca.crt \
-  --cert certs/client-a.crt \
-  --key certs/client-a.key \
+  --ca dev/certs/ca.crt \
+  --cert dev/certs/client-a.crt \
+  --key dev/certs/client-a.key \
   list
 ```
 
 ## Start a direct argv command
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   start-argv --binary /bin/echo hello
 ```
 
 ## Start one shell command string
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   start-shell --command "printf 'hello from shell\n'"
 ```
 
 ## Start a persistent shell session
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   start-session --shell /bin/sh
 ```
 
 ## Inspect metadata and replay output
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   get --id exec-123
 ```
 
@@ -78,28 +78,28 @@ download-archive
 ## Cancel a running command
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   cancel --id exec-123 --grace 5s
 ```
 
 ## Upload a file
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   upload --local ./README.md --remote /tmp/README.md
 ```
 
 ## Download a file
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   download --remote /tmp/README.md --local ./README.copy
 ```
 
 ## Download an archive
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   download-archive --path /tmp --local ./tmp.zip
 ```
 
@@ -108,6 +108,6 @@ download-archive
 Start a session, then attach by execution ID from another terminal:
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key \
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   attach --id exec-123
 ```

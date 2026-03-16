@@ -28,18 +28,18 @@ protoc -I proto \
   --go-grpc_out=. --go-grpc_opt=module=cmdagent \
   proto/agent/v1/agent.proto
 
-rm -f python/cmdagent_client/gen/agent/v1/agent_pb2.py python/cmdagent_client/gen/agent/v1/agent_pb2_grpc.py
+rm -f sdk/python/cmdagent_client/gen/agent/v1/agent_pb2.py sdk/python/cmdagent_client/gen/agent/v1/agent_pb2_grpc.py
 .venv/bin/python -m grpc_tools.protoc \
   -I proto \
-  --python_out=python/cmdagent_client/gen \
-  --grpc_python_out=python/cmdagent_client/gen \
+  --python_out=sdk/python/cmdagent_client/gen \
+  --grpc_python_out=sdk/python/cmdagent_client/gen \
   proto/agent/v1/agent.proto
 
-python_file="python/cmdagent_client/gen/agent/v1/agent_pb2_grpc.py"
-python_pb2_file="python/cmdagent_client/gen/agent/v1/agent_pb2.py"
+python_file="sdk/python/cmdagent_client/gen/agent/v1/agent_pb2_grpc.py"
+python_pb2_file="sdk/python/cmdagent_client/gen/agent/v1/agent_pb2.py"
 python3 - <<'PY'
 from pathlib import Path
-for path in [Path("python/cmdagent_client/gen/agent/v1/agent_pb2_grpc.py")]:
+for path in [Path("sdk/python/cmdagent_client/gen/agent/v1/agent_pb2_grpc.py")]:
     data = path.read_text(encoding="utf-8")
     data = data.replace("from agent.v1 import agent_pb2 as agent_dot_v1_dot_agent__pb2", "from . import agent_pb2 as agent_dot_v1_dot_agent__pb2")
     path.write_text(data, encoding="utf-8")

@@ -35,7 +35,7 @@ Regenerate all Go and Python protobuf stubs with:
 Generate development certificates with a local CA, a server certificate for `localhost` and `127.0.0.1`, and development client certificates:
 
 ```bash
-./scripts/generate-dev-certs.sh certs
+./scripts/generate-dev-certs.sh dev/certs
 ```
 
 Notes:
@@ -51,12 +51,12 @@ Notes:
 ```bash
 ./cmdagentd run \
   --listen-address 127.0.0.1:8443 \
-  --server-cert certs/server.crt \
-  --server-key certs/server.key \
-  --client-ca certs/ca.crt \
+  --server-cert dev/certs/server.crt \
+  --server-key dev/certs/server.key \
+  --client-ca dev/certs/ca.crt \
   --allowed-client-cn client-a \
-  --data-dir ./data \
-  --audit-log ./data/audit.log
+  --data-dir ./dev/data \
+  --audit-log ./dev/data/audit.log
 ```
 
 Backward-compatible direct flag invocation also works:
@@ -64,11 +64,11 @@ Backward-compatible direct flag invocation also works:
 ```bash
 ./cmdagentd \
   --listen-address 127.0.0.1:8443 \
-  --server-cert certs/server.crt \
-  --server-key certs/server.key \
-  --client-ca certs/ca.crt \
+  --server-cert dev/certs/server.crt \
+  --server-key dev/certs/server.key \
+  --client-ca dev/certs/ca.crt \
   --allowed-client-cn client-a \
-  --data-dir ./data
+  --data-dir ./dev/data
 ```
 
 ## JSON Config
@@ -78,12 +78,12 @@ Backward-compatible direct flag invocation also works:
 ```json
 {
   "listen_address": "127.0.0.1:8443",
-  "server_cert_file": "certs/server.crt",
-  "server_key_file": "certs/server.key",
-  "client_ca_file": "certs/ca.crt",
+  "server_cert_file": "dev/certs/server.crt",
+  "server_key_file": "dev/certs/server.key",
+  "client_ca_file": "dev/certs/ca.crt",
   "allowed_client_cn": "client-a",
-  "data_dir": "data",
-  "audit_log_path": "data/audit.log",
+  "data_dir": "dev/data",
+  "audit_log_path": "dev/data/audit.log",
   "chunk_size": 32768,
   "flush_interval": "100ms",
   "grace_period": "5s"
@@ -93,7 +93,7 @@ Backward-compatible direct flag invocation also works:
 Run it with:
 
 ```bash
-./cmdagentd run --config ./cmdagentd.json
+./cmdagentd run --config ./dev/cmdagentd.json
 ```
 
 ## Service Management
@@ -105,7 +105,7 @@ Run it with:
 ```bash
 sudo ./cmdagentd service install \
   --name cmdagentd \
-  --config ./cmdagentd.json
+  --config ./dev/cmdagentd.json
 
 sudo ./cmdagentd service start --name cmdagentd
 sudo ./cmdagentd service status --name cmdagentd
@@ -117,7 +117,7 @@ sudo ./cmdagentd service uninstall --name cmdagentd
 ```bash
 sudo ./cmdagentd service install \
   --name cmdagentd \
-  --config ./cmdagentd.json
+  --config ./dev/cmdagentd.json
 
 sudo ./cmdagentd service start --name cmdagentd
 sudo ./cmdagentd service status --name cmdagentd
@@ -127,7 +127,7 @@ sudo ./cmdagentd service uninstall --name cmdagentd
 ### Windows
 
 ```powershell
-cmdagentd.exe service install --name cmdagentd --config .\cmdagentd.json
+cmdagentd.exe service install --name cmdagentd --config .\dev/cmdagentd.json
 cmdagentd.exe service start --name cmdagentd
 cmdagentd.exe service status --name cmdagentd
 cmdagentd.exe service uninstall --name cmdagentd
@@ -142,37 +142,56 @@ Connection flags are shared across subcommands:
 ```bash
 ./cmdagentctl \
   --address 127.0.0.1:8443 \
-  --ca certs/ca.crt \
-  --cert certs/client-a.crt \
-  --key certs/client-a.key \
+  --ca dev/certs/ca.crt \
+  --cert dev/certs/client-a.crt \
+  --key dev/certs/client-a.key \
   list
 ```
 
 Examples:
 
 ```bash
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key start-argv --binary /bin/echo hello
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key start-shell --command "printf 'hello\n'"
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key get --id exec-123
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key upload --local ./README.md --remote /tmp/README.md
-./cmdagentctl --address 127.0.0.1:8443 --ca certs/ca.crt --cert certs/client-a.crt --key certs/client-a.key download --remote /tmp/README.md --local ./README.copy
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-argv --binary /bin/echo hello
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key start-shell --command "printf 'hello\n'"
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key get --id exec-123
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key upload --local ./README.md --remote /tmp/README.md
+./cmdagentctl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key download --remote /tmp/README.md --local ./README.copy
 ```
 
 `get` includes persisted output by internally calling both `GetExecution` and `ReadOutput`.
 
+## Layout
+
+High-level repository structure:
+
+- `cmd/`: Go binaries
+- `internal/`: daemon internals
+- `pkg/`: exported Go packages
+- `proto/`: protobuf source
+- `sdk/go/`: Go SDK examples and SDK-facing docs
+- `sdk/python/`: Python SDK package, examples, tests, and wrapper integrations
+- `dev/`: local development config, certificates, and runtime state
+- `website/`: Docusaurus documentation site
+
+See also:
+
+- `sdk/README.md`
+- `sdk/go/README.md`
+- `dev/cmdagentd.json`
+
 ## SDKs And Wrappers
 
 - Go SDK: `pkg/cmdagentclient`
-- Python SDK: `python/cmdagent_client`
-- RobotFramework library: `python/cmdagent_client/robot_library.py`
-- Ansible connection plugin: `python/cmdagent_client/ansible_plugins/connection/cmdagent.py`
+- Python SDK: `sdk/python/cmdagent_client`
+- RobotFramework library: `sdk/python/cmdagent_client/robot_library.py`
+- Ansible connection plugin: `sdk/python/cmdagent_client/ansible_plugins/connection/cmdagent.py`
 
 See:
 
-- `examples/go_sdk`
-- `examples/python_sdk`
-- `python/README.md`
-- `python/tests/README.md`
+- `sdk/go/examples`
+- `sdk/python/examples`
+- `sdk/python/README.md`
+- `sdk/python/tests/README.md`
 
 ## Python Tests
 
