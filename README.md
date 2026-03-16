@@ -18,6 +18,16 @@ Execution and transfer metadata are stored in SQLite under `-data-dir`. Output i
 ```bash
 go build ./cmd/cmdagentd
 go build ./cmd/cmdagentctl
+./cmdagentd version
+./cmdagentctl version
+```
+
+## Proto Generation
+
+Regenerate all Go and Python protobuf stubs with:
+
+```bash
+./scripts/gen-proto.sh
 ```
 
 ## Development Certificates
@@ -171,6 +181,55 @@ See:
 ## Go Tests
 
 ```bash
-go test ./...
+./scripts/ci-go.sh
+```
+
+Individual packages can still be run directly:
+
+```bash
 go test ./pkg/cmdagentclient
+go test ./cmd/cmdagentctl
+go test ./cmd/cmdagentd
+```
+
+## CI Verification
+
+Local commands that match the GitHub Actions workflow:
+
+```bash
+./scripts/ci-go.sh
+./scripts/ci-python.sh
+./scripts/ci-verify-version.sh
+./scripts/ci-verify-generated.sh
+./scripts/build-release.sh
+./scripts/build-python-package.sh
+```
+
+The repository workflow is defined in `.github/workflows/ci.yml`.
+
+## Service Smoke Scripts
+
+Manual service smoke helpers are provided for environments where you can run privileged install/start/stop/uninstall flows:
+
+```bash
+sudo ./scripts/service-smoke-linux.sh
+sudo ./scripts/service-smoke-macos.sh
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\service-smoke-windows.ps1
+```
+
+## Release Packaging
+
+Build versioned Go release binaries:
+
+```bash
+./scripts/build-release.sh
+```
+
+Build the Python source and wheel distributions:
+
+```bash
+./scripts/build-python-package.sh
 ```

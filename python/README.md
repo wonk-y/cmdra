@@ -14,6 +14,14 @@ cd python
 ../.venv/bin/pip install -e '.[ansible,robot,dev]'
 ```
 
+## Proto Generation
+
+From the repository root:
+
+```bash
+./scripts/gen-proto.sh
+```
+
 ## Basic Usage
 
 ```python
@@ -101,3 +109,22 @@ mkdir -p "$ANSIBLE_LOCAL_TEMP" "$ANSIBLE_REMOTE_TEMP"
 ## Pytest
 
 See `python/tests/README.md` for the exact test commands.
+
+## CI Commands
+
+From the repository root:
+
+```bash
+./scripts/ci-python.sh
+./scripts/ci-verify-version.sh
+./scripts/ci-verify-generated.sh
+./scripts/build-python-package.sh
+```
+
+## Python Package Build
+
+From the repository root:
+
+```bash
+./scripts/build-python-package.sh
+```

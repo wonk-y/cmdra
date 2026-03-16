@@ -1,0 +1,112 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  go-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run Go tests
+        run: ./scripts/ci-go.sh
+
+  python-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Python virtualenv
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e './python[ansible,robot,dev]'
+
+      - name: Run Python tests
+        run: ./scripts/ci-python.sh
+
+  verify-generated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install protoc
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      - name: Install Go proto plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.1
+
+      - name: Set up Python virtualenv
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e './python[dev]'
+
+      - name: Verify package versions are aligned
+        run: ./scripts/ci-verify-version.sh
+
+      - name: Verify generated stubs are committed
+        run: ./scripts/ci-verify-generated.sh
+
+  release-build:
+    runs-on: ubuntu-latest
+    needs:
+      - go-test
+      - python-test
+      - verify-generated
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Python virtualenv
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install build wheel
+
+      - name: Build release binaries
+        run: ./scripts/build-release.sh
+
+      - name: Build Python distributions
+        run: ./scripts/build-python-package.sh
+
+      - name: Upload Go release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmdagent-release-binaries
+          path: dist/release
+
+      - name: Upload Python distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmdagent-python-dist
+          path: dist/python

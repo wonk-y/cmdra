@@ -17,3 +17,9 @@ Run the optional performance check:
 export CMDAGENT_RUN_PERF=1
 .venv/bin/pytest -q python/tests/test_performance_checks.py
 ```
+
+Run the same Python test entrypoint used by CI:
+
+```bash
+./scripts/ci-python.sh
+```
