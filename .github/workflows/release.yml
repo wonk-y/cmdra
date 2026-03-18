@@ -1,0 +1,78 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify tag matches VERSION
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          version="$(cat VERSION)"
+          expected_tag="v${version}"
+          if [ "$TAG_NAME" != "$expected_tag" ]; then
+            echo "tag/version mismatch: tag=$TAG_NAME VERSION=$version expected_tag=$expected_tag" >&2
+            exit 1
+          fi
+
+      - name: Set up Python virtualenv
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install build wheel
+
+      - name: Verify package versions are aligned
+        run: ./scripts/ci-verify-version.sh
+
+      - name: Build release binaries
+        env:
+          VERSION: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          VERSION="${VERSION#v}" ./scripts/build-release.sh
+
+      - name: Build Python distributions
+        run: ./scripts/build-python-package.sh
+
+      - name: Create release archives
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          version="${VERSION#v}"
+          out_dir="dist/release/${version}"
+          for platform_dir in "$out_dir"/*; do
+            platform="$(basename "$platform_dir")"
+            tar -C "$platform_dir" -czf "${out_dir}/cmdra-${version}-${platform}.tar.gz" .
+          done
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/release/*/cmdra-*.tar.gz
+            dist/sdk/python/*

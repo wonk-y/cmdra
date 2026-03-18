@@ -121,11 +121,11 @@ jobs:
       - name: Upload Go release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cmdagent-release-binaries
+          name: cmdra-release-binaries
           path: dist/release
 
       - name: Upload Python distributions
         uses: actions/upload-artifact@v4
         with:
-          name: cmdagent-python-dist
+          name: cmdra-python-dist
           path: dist/sdk/python

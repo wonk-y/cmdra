@@ -408,3 +408,29 @@ Build the Python source and wheel distributions:
 ```bash
 ./scripts/build-python-package.sh
 ```
+
+## GitHub Releases
+
+GitHub Releases are now driven by tags through [release.yml](/home/matthew/Projects/CmdAgent/.github/workflows/release.yml).
+
+Release flow:
+
+1. Update [VERSION](/home/matthew/Projects/CmdAgent/VERSION) and keep the Python package version aligned.
+2. Commit the release change.
+3. Create and push a matching tag:
+
+```bash
+git tag v0.1.0
+git push origin main
+git push origin v0.1.0
+```
+
+The release workflow verifies that the pushed tag matches `VERSION`, builds:
+
+- versioned Go binaries with [build-release.sh](/home/matthew/Projects/CmdAgent/scripts/build-release.sh)
+- Python wheel and source distributions with [build-python-package.sh](/home/matthew/Projects/CmdAgent/scripts/build-python-package.sh)
+
+It then creates a GitHub Release automatically and uploads:
+
+- per-platform `cmdra-<version>-<platform>.tar.gz` archives
+- Python distribution files from `dist/sdk/python`
