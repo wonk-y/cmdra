@@ -98,6 +98,30 @@ func TestCmdractlStartShellWithPTY(t *testing.T) {
 	}
 }
 
+func TestCmdractlWriteStdin(t *testing.T) {
+	requireUnixCommandsCtl(t)
+	env := newCtlEnv(t)
+
+	startOut := env.runCtl(t, "start-shell", "--shell", "/bin/sh", "--command", "read line; printf '%s\\n' \"$line\"")
+	id := mustMatch(t, `ID:\s+(\S+)`, startOut)
+
+	stdinOut := env.runCtl(t, "stdin", "--id", id, "--data", "cli-stdin\n", "--eof")
+	if !strings.Contains(stdinOut, "Sent stdin to ID: "+id) {
+		t.Fatalf("unexpected stdin output:\n%s", stdinOut)
+	}
+	if !strings.Contains(stdinOut, "Bytes Sent: 10") {
+		t.Fatalf("expected byte count in stdin output:\n%s", stdinOut)
+	}
+	if !strings.Contains(stdinOut, "EOF: true") {
+		t.Fatalf("expected EOF marker in stdin output:\n%s", stdinOut)
+	}
+
+	getOut := waitForCtlOutput(t, env, id)
+	if !strings.Contains(getOut, "[STDOUT] cli-stdin") {
+		t.Fatalf("missing stdin-fed output in get output:\n%s", getOut)
+	}
+}
+
 func TestCmdractlVersion(t *testing.T) {
 	env := newCtlEnv(t)
 	out := env.runCtl(t, "version")

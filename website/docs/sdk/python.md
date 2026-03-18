@@ -75,6 +75,15 @@ items = client.list_executions()
 details = client.get_execution_with_output(execution.execution_id)
 ```
 
+## Send stdin without attaching
+
+```python
+client.write_stdin(execution.execution_id, b"printf 'from-write-stdin\\n'\n", eof=False)
+client.write_stdin(execution.execution_id, b"exit\n", eof=True)
+```
+
+`write_stdin` opens a short-lived attach stream under the hood, writes stdin to the target execution, and closes that helper stream again. Use it when you need to feed a running command or shell session by execution ID without holding a full attach session open.
+
 ## Delete history entries
 
 ```python

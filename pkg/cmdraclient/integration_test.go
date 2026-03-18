@@ -152,6 +152,68 @@ func TestClientAttachShellSession(t *testing.T) {
 	}
 }
 
+func TestClientWriteStdinShellCommand(t *testing.T) {
+	requireUnixCommands(t)
+	env := newIntegrationEnv(t)
+
+	execMeta, err := env.clientA.StartShellCommand(context.Background(), "/bin/sh", "read first; read second; printf '%s-%s\\n' \"$first\" \"$second\"")
+	if err != nil {
+		t.Fatalf("start shell command: %v", err)
+	}
+	if err := env.clientA.WriteStdin(context.Background(), execMeta.GetExecutionId(), []byte("alpha\n"), false); err != nil {
+		t.Fatalf("write stdin first chunk: %v", err)
+	}
+	if err := env.clientA.WriteStdin(context.Background(), execMeta.GetExecutionId(), []byte("beta\n"), true); err != nil {
+		t.Fatalf("write stdin second chunk: %v", err)
+	}
+
+	waitForCompletion(t, env.clientA, execMeta.GetExecutionId())
+	details, err := env.clientA.GetExecutionWithOutput(context.Background(), execMeta.GetExecutionId(), false)
+	if err != nil {
+		t.Fatalf("get shell command output after write stdin: %v", err)
+	}
+	var output bytes.Buffer
+	for _, chunk := range details.Output {
+		if !chunk.GetEof() {
+			output.Write(chunk.GetData())
+		}
+	}
+	if !bytes.Contains(output.Bytes(), []byte("alpha-beta")) {
+		t.Fatalf("expected stdin-fed shell command output, got %q", output.String())
+	}
+}
+
+func TestClientWriteStdinShellSession(t *testing.T) {
+	requireUnixCommands(t)
+	env := newIntegrationEnv(t)
+
+	execMeta, err := env.clientA.StartShellSession(context.Background(), "/bin/sh", nil)
+	if err != nil {
+		t.Fatalf("start shell session: %v", err)
+	}
+	if err := env.clientA.WriteStdin(context.Background(), execMeta.GetExecutionId(), []byte("printf 'stdin-session\\n'\n"), false); err != nil {
+		t.Fatalf("write stdin to shell session: %v", err)
+	}
+	if err := env.clientA.WriteStdin(context.Background(), execMeta.GetExecutionId(), []byte("exit\n"), true); err != nil {
+		t.Fatalf("write final stdin to shell session: %v", err)
+	}
+
+	waitForCompletion(t, env.clientA, execMeta.GetExecutionId())
+	details, err := env.clientA.GetExecutionWithOutput(context.Background(), execMeta.GetExecutionId(), false)
+	if err != nil {
+		t.Fatalf("get shell session output after write stdin: %v", err)
+	}
+	var output bytes.Buffer
+	for _, chunk := range details.Output {
+		if !chunk.GetEof() {
+			output.Write(chunk.GetData())
+		}
+	}
+	if !bytes.Contains(output.Bytes(), []byte("stdin-session")) {
+		t.Fatalf("expected stdin-fed shell session output, got %q", output.String())
+	}
+}
+
 func TestClientShellExecutionWithPTY(t *testing.T) {
 	requireUnixCommands(t)
 	env := newIntegrationEnv(t)

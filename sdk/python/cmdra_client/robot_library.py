@@ -142,6 +142,10 @@ class CmdraLibrary:
         return self._client.read_output(execution_id, offset, discard_after_read)
 
     @keyword
+    def write_stdin(self, execution_id: str, data: str = "", eof: bool = False) -> None:
+        self._client.write_stdin(execution_id, data.encode(), eof)
+
+    @keyword
     def upload_file(self, local_path: str, remote_path: str, overwrite: bool = True, file_mode: Optional[int] = None):
         return self._client.upload_file(local_path, remote_path, overwrite, file_mode)
 

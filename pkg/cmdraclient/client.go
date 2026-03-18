@@ -325,6 +325,51 @@ func (c *Client) ReadOutput(ctx context.Context, executionID string, offset int6
 	}
 }
 
+// WriteStdin sends raw stdin bytes into one running execution without keeping a full attach session open.
+func (c *Client) WriteStdin(ctx context.Context, executionID string, data []byte, eof bool) error {
+	stream, err := c.api.Attach(ctx)
+	if err != nil {
+		return err
+	}
+	if err := stream.Send(&agentv1.AttachRequest{
+		Payload: &agentv1.AttachRequest_Start{
+			Start: &agentv1.AttachStart{
+				ExecutionId:      executionID,
+				ReplayBuffered:   false,
+				ReplayFromOffset: 0,
+			},
+		},
+	}); err != nil {
+		return err
+	}
+	evt, err := stream.Recv()
+	if err != nil {
+		return err
+	}
+	if evt.GetAck() == nil {
+		return fmt.Errorf("expected attach ack for %s", executionID)
+	}
+	if err := stream.Send(&agentv1.AttachRequest{
+		Payload: &agentv1.AttachRequest_Stdin{
+			Stdin: &agentv1.StdinChunk{Data: data, Eof: eof},
+		},
+	}); err != nil {
+		return err
+	}
+	if err := stream.CloseSend(); err != nil {
+		return err
+	}
+	for {
+		_, err := stream.Recv()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil
+			}
+			return err
+		}
+	}
+}
+
 // Attach opens a bidirectional interactive session to one running execution.
 func (c *Client) Attach(ctx context.Context, executionID string, replayBuffered bool, replayFromOffset int64) (*AttachSession, error) {
 	stream, err := c.api.Attach(ctx)

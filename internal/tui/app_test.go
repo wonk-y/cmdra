@@ -209,3 +209,79 @@ func TestTransferFormClearsFieldsAfterSuccessfulSubmit(t *testing.T) {
 		t.Fatalf("expected form cursor reset to 0, got %d", model.formCursor)
 	}
 }
+
+func TestDetailInputModeSubmitsLineAndClearsPrompt(t *testing.T) {
+	model := New(nil, cmdraclient.DialConfig{}).(*app)
+	model.section = sectionExecutions
+	model.focus = focusDetail
+	model.executions = []*agentv1.Execution{{
+		ExecutionId: "exec-stdin",
+		Kind:        agentv1.ExecutionKind_EXECUTION_KIND_SHELL_SESSION,
+		State:       agentv1.ExecutionState_EXECUTION_STATE_RUNNING,
+	}}
+	model.detailMeta = model.executions[0]
+	model.selection[sectionExecutions] = 0
+
+	_, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'i'}})
+	if !model.detailInputOpen {
+		t.Fatal("expected detail stdin prompt to open")
+	}
+
+	model.detailInput.SetValue("printf 'hi'")
+	_, cmd := model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if cmd == nil {
+		t.Fatal("expected stdin submit command")
+	}
+	if model.detailInputOpen {
+		t.Fatal("expected detail stdin prompt to close after submit")
+	}
+	if model.detailInput.Value() != "" {
+		t.Fatalf("expected detail stdin prompt to clear, got %q", model.detailInput.Value())
+	}
+	if !model.loading {
+		t.Fatal("expected loading state after stdin submit")
+	}
+}
+
+func TestDetailInputModeConsumesShortcutLetters(t *testing.T) {
+	model := New(nil, cmdraclient.DialConfig{}).(*app)
+	model.section = sectionExecutions
+	model.focus = focusDetail
+	model.executions = []*agentv1.Execution{{
+		ExecutionId:  "exec-stdin",
+		Kind:         agentv1.ExecutionKind_EXECUTION_KIND_COMMAND,
+		CommandShell: "/bin/sh",
+		State:        agentv1.ExecutionState_EXECUTION_STATE_RUNNING,
+	}}
+	model.detailMeta = model.executions[0]
+	model.selection[sectionExecutions] = 0
+
+	_, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'i'}})
+	_, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	_, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+
+	if got := model.detailInput.Value(); got != "rq" {
+		t.Fatalf("expected stdin prompt to capture typed letters, got %q", got)
+	}
+}
+
+func TestDetailEOFReturnsCommand(t *testing.T) {
+	model := New(nil, cmdraclient.DialConfig{}).(*app)
+	model.section = sectionExecutions
+	model.focus = focusDetail
+	model.executions = []*agentv1.Execution{{
+		ExecutionId: "exec-eof",
+		Kind:        agentv1.ExecutionKind_EXECUTION_KIND_SHELL_SESSION,
+		State:       agentv1.ExecutionState_EXECUTION_STATE_RUNNING,
+	}}
+	model.detailMeta = model.executions[0]
+	model.selection[sectionExecutions] = 0
+
+	_, cmd := model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}})
+	if cmd == nil {
+		t.Fatal("expected EOF send command")
+	}
+	if !model.loading {
+		t.Fatal("expected loading state after EOF send")
+	}
+}

@@ -19,6 +19,7 @@ The Go SDK also exposes history-management helpers for:
 
 - deleting one finished execution or transfer with `DeleteExecution`
 - clearing finished history for the authenticated identity with `ClearHistory`
+- writing stdin to a running command or shell session by execution ID with `WriteStdin`
 
 Shell-oriented helpers also accept optional PTY mode through `ShellOptions{UsePTY: true}` on:
 
@@ -27,3 +28,5 @@ Shell-oriented helpers also accept optional PTY mode through `ShellOptions{UsePT
 - the matching async variants
 
 `ShellOptions` also accepts `PTYRows` and `PTYCols` for the initial terminal size, and `AttachSession.ResizePTY(rows, cols)` updates a running PTY-backed execution. PTY mode works on Unix-like platforms and on Windows through ConPTY.
+
+For non-interactive stdin injection, use `WriteStdin(ctx, executionID, data, eof)` instead of opening a full attach session.

@@ -32,6 +32,7 @@ delete
 clear-history
 cancel
 output
+stdin
 attach
 upload
 download
@@ -117,6 +118,22 @@ Add `--pty` when you want terminal-style shell behavior:
 ./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
   cancel --id exec-123 --grace 5s
 ```
+
+## Send stdin to a running shell command or shell session
+
+```bash
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
+  stdin --id exec-123 --data "printf 'hello from stdin\n'\n"
+```
+
+Add `--eof` when the remote process should see end-of-input after the chunk:
+
+```bash
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key \
+  stdin --id exec-123 --data "exit\n" --eof
+```
+
+`stdin` is the one-shot CLI equivalent of the SDK `write_stdin(execution_id, data, eof=False)` helpers. It opens a short-lived attach stream internally, sends one chunk, and closes it again.
 
 ## Upload a file
 

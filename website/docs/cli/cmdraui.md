@@ -47,6 +47,7 @@ The active section changes from the navigation panel. `tab` and `shift+tab` are 
 - listing executions and transfers
 - inspecting metadata for running and finished jobs
 - replaying persisted stdout and stderr output
+- sending one stdin line or EOF to a running shell command or shell session from the detail pane
 - starting argv commands
 - starting shell commands
 - starting persistent shell sessions
@@ -84,11 +85,20 @@ Panel behavior:
 - main panel focused on a form: `tab` and `shift+tab` move between form fields; when the last field is reached, `tab` moves to the next pane, and when the first field is reached, `shift+tab` moves to the previous pane
 - the shell and session forms include a `Use PTY` field
 - detail panel focused: `j/k` scrolls detail and output content
+- detail panel focused on a running shell command or shell session:
+  - `i` opens a one-line stdin prompt
+  - `e` sends EOF without opening the prompt
 
 History cleanup behavior:
 
 - `x` only deletes finished items from history; running items return a failed-precondition error
 - `X` clears finished history for the authenticated identity and leaves running items in place
+
+Stdin behavior:
+
+- `i` sends exactly one line terminated with newline to the selected running shell command or shell session
+- `e` sends EOF to the selected running shell command or shell session
+- this is for lightweight command/session input without switching into full attach mode
 
 ## Attach mode
 

@@ -119,6 +119,8 @@ type keyMap struct {
 	Delete      key.Binding
 	ClearAll    key.Binding
 	ViewOutput  key.Binding
+	WriteStdin  key.Binding
+	SendEOF     key.Binding
 	RunningOnly key.Binding
 	Submit      key.Binding
 	NextMode    key.Binding
@@ -140,6 +142,8 @@ func newKeyMap() keyMap {
 		Delete:      key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "delete item")),
 		ClearAll:    key.NewBinding(key.WithKeys("X"), key.WithHelp("X", "clear history")),
 		ViewOutput:  key.NewBinding(key.WithKeys("o"), key.WithHelp("o", "toggle output")),
+		WriteStdin:  key.NewBinding(key.WithKeys("i"), key.WithHelp("i", "send stdin line")),
+		SendEOF:     key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "send EOF")),
 		RunningOnly: key.NewBinding(key.WithKeys("f"), key.WithHelp("f", "running only")),
 		Submit:      key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "submit")),
 		NextMode:    key.NewBinding(key.WithKeys("]"), key.WithHelp("]", "next mode")),
@@ -181,6 +185,8 @@ type app struct {
 	commandInputs   []textinput.Model
 	transferInputs  []textinput.Model
 	connectInputs   []textinput.Model
+	detailInput     textinput.Model
+	detailInputOpen bool
 	formCursor      int
 	lastSubmittedID string
 	pendingAction   destructiveAction
@@ -277,6 +283,13 @@ type historyClearedMsg struct {
 	err                 error
 }
 
+type stdinWrittenMsg struct {
+	executionID string
+	bytesSent   int
+	eof         bool
+	err         error
+}
+
 func New(client *cmdraclient.Client, cfg cmdraclient.DialConfig) tea.Model {
 	sp := spinner.New()
 	sp.Spinner = spinner.Line
@@ -323,6 +336,11 @@ func New(client *cmdraclient.Client, cfg cmdraclient.DialConfig) tea.Model {
 	connectInputs[3].Placeholder = "Client key PEM"
 	connectInputs[4].Placeholder = "Server name override"
 
+	detailInput := textinput.New()
+	detailInput.CharLimit = 4096
+	detailInput.Width = 80
+	detailInput.Placeholder = "Type one stdin line and press enter"
+
 	h := help.New()
 	h.ShowAll = false
 
@@ -345,6 +363,7 @@ func New(client *cmdraclient.Client, cfg cmdraclient.DialConfig) tea.Model {
 		commandInputs:  commandInputs,
 		transferInputs: transferInputs,
 		connectInputs:  connectInputs,
+		detailInput:    detailInput,
 		status:         "Connecting…",
 		loading:        true,
 	}
@@ -525,6 +544,19 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if a.attach != nil {
 			return a.handleAttachKey(msg)
 		}
+		if a.focus == focusDetail && a.detailInputOpen {
+			if key.Matches(msg, a.keys.NextFocus) {
+				a.focus = nextFocus(a.section, a.focus)
+				a.syncFormFocus()
+				return a, nil
+			}
+			if key.Matches(msg, a.keys.PrevFocus) {
+				a.focus = prevFocus(a.section, a.focus)
+				a.syncFormFocus()
+				return a, nil
+			}
+			return a.handleDetailKey(msg)
+		}
 		deletePressed := key.Matches(msg, a.keys.Delete)
 		clearPressed := key.Matches(msg, a.keys.ClearAll)
 		if a.pendingAction != destructiveActionNone && !deletePressed && !clearPressed {
@@ -681,6 +713,20 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.lastSubmittedID = ""
 		a.setStatus(fmt.Sprintf("Cleared %d history item(s); skipped %d running item(s).", msg.deletedCount, msg.skippedRunningCount))
 		return a, a.refreshCmd()
+	case stdinWrittenMsg:
+		a.loading = false
+		if msg.err != nil {
+			a.setError(msg.err)
+			return a, nil
+		}
+		if msg.eof && msg.bytesSent > 0 {
+			a.setStatus(fmt.Sprintf("Sent %d stdin byte(s) and EOF to %s.", msg.bytesSent, msg.executionID))
+		} else if msg.eof {
+			a.setStatus(fmt.Sprintf("Sent EOF to %s.", msg.executionID))
+		} else {
+			a.setStatus(fmt.Sprintf("Sent %d stdin byte(s) to %s.", msg.bytesSent, msg.executionID))
+		}
+		return a, a.refreshCmd()
 	}
 	return a, nil
 }
@@ -702,6 +748,7 @@ func (a *app) handleSidebarKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, a.keys.Up):
 		if current > 0 {
+			a.closeDetailInput()
 			a.section = sections[current-1]
 			a.formCursor = 0
 			a.syncFormFocus()
@@ -709,6 +756,7 @@ func (a *app) handleSidebarKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 	case key.Matches(msg, a.keys.Down):
 		if current < len(sections)-1 {
+			a.closeDetailInput()
 			a.section = sections[current+1]
 			a.formCursor = 0
 			a.syncFormFocus()
@@ -727,6 +775,7 @@ func (a *app) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, a.keys.Up):
 		if idx > 0 {
+			a.closeDetailInput()
 			a.selection[a.section] = idx - 1
 			a.lastSubmittedID = ""
 			a.selectedID[a.section] = primarySelectionID(items[a.selection[a.section]])
@@ -734,6 +783,7 @@ func (a *app) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 	case key.Matches(msg, a.keys.Down):
 		if idx < len(items)-1 {
+			a.closeDetailInput()
 			a.selection[a.section] = idx + 1
 			a.lastSubmittedID = ""
 			a.selectedID[a.section] = primarySelectionID(items[a.selection[a.section]])
@@ -744,6 +794,50 @@ func (a *app) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (a *app) handleDetailKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	if a.detailInputOpen {
+		switch {
+		case key.Matches(msg, a.keys.Back):
+			a.closeDetailInput()
+			a.setStatus("Stdin input canceled.")
+			return a, nil
+		case key.Matches(msg, a.keys.Submit):
+			selected := a.selectedExecutionForInput()
+			if selected == nil {
+				a.closeDetailInput()
+				a.setError(errors.New("selected item does not accept stdin"))
+				return a, nil
+			}
+			payload := []byte(a.detailInput.Value() + "\n")
+			a.closeDetailInput()
+			a.loading = true
+			return a, writeStdinCmd(a.client, selected.GetExecutionId(), payload, false)
+		default:
+			var cmd tea.Cmd
+			a.detailInput, cmd = a.detailInput.Update(msg)
+			return a, cmd
+		}
+	}
+	if key.Matches(msg, a.keys.WriteStdin) {
+		selected := a.selectedExecutionForInput()
+		if selected == nil {
+			a.setError(errors.New("selected item does not accept stdin"))
+			return a, nil
+		}
+		a.detailInputOpen = true
+		a.detailInput.SetValue("")
+		a.detailInput.Focus()
+		a.setStatus(fmt.Sprintf("Entering stdin for %s. Press enter to send one line, esc to cancel.", selected.GetExecutionId()))
+		return a, nil
+	}
+	if key.Matches(msg, a.keys.SendEOF) {
+		selected := a.selectedExecutionForInput()
+		if selected == nil {
+			a.setError(errors.New("selected item does not accept stdin"))
+			return a, nil
+		}
+		a.loading = true
+		return a, writeStdinCmd(a.client, selected.GetExecutionId(), nil, true)
+	}
 	var cmd tea.Cmd
 	a.detailViewport, cmd = a.detailViewport.Update(msg)
 	return a, cmd
@@ -951,6 +1045,9 @@ func (a *app) renderDetailPane(width, height int) string {
 	if a.loading {
 		content = a.spinner.View() + " Loading…\n\n" + content
 	}
+	if a.detailInputOpen {
+		content += "\n\n" + a.styles.panelTitle.Render("Send stdin line") + "\n" + a.detailInput.View() + "\n" + a.styles.muted.Render("Enter sends one line terminated with newline. Esc cancels. Use 'e' outside the prompt to send EOF only.")
+	}
 	return a.panelStyle(focusDetail).Width(width).Height(height).Render(a.panelHeading(title, focusDetail) + "\n" + content)
 }
 
@@ -971,14 +1068,14 @@ func (a *app) renderFooter(width int) string {
 		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Up, a.keys.Down, a.keys.Attach, a.keys.Cancel, a.keys.Delete, a.keys.ClearAll}
 	}
 	if a.focus == focusDetail {
-		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Up, a.keys.Down, a.keys.ViewOutput, a.keys.Delete, a.keys.ClearAll, a.keys.Quit}
+		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Up, a.keys.Down, a.keys.ViewOutput, a.keys.WriteStdin, a.keys.SendEOF, a.keys.Delete}
 	}
 	if a.focus == focusForm {
 		short = []key.Binding{a.keys.NextFocus, a.keys.PrevFocus, a.keys.Submit, a.keys.NextMode, a.keys.PrevMode, a.keys.ToggleHelp, a.keys.Quit}
 	}
 	helpText := a.help.ShortHelpView(short)
 	if a.showHelp {
-		helpText = a.help.FullHelpView([][]key.Binding{{a.keys.Up, a.keys.Down, a.keys.NextFocus, a.keys.PrevFocus}, {a.keys.Refresh, a.keys.Attach, a.keys.Cancel, a.keys.Delete, a.keys.ClearAll}, {a.keys.ViewOutput, a.keys.RunningOnly, a.keys.Submit, a.keys.NextMode, a.keys.PrevMode}, {a.keys.ToggleHelp, a.keys.Quit}})
+		helpText = a.help.FullHelpView([][]key.Binding{{a.keys.Up, a.keys.Down, a.keys.NextFocus, a.keys.PrevFocus}, {a.keys.Refresh, a.keys.Attach, a.keys.Cancel, a.keys.Delete, a.keys.ClearAll}, {a.keys.ViewOutput, a.keys.WriteStdin, a.keys.SendEOF, a.keys.RunningOnly, a.keys.Submit, a.keys.NextMode, a.keys.PrevMode}, {a.keys.ToggleHelp, a.keys.Quit}})
 	}
 	lines := []string{statusStyle.Render(statusText), helpText}
 	return a.styles.footer.Width(width).Render(strings.Join(lines, "\n"))
@@ -1166,6 +1263,15 @@ func loadDetailCmd(client *cmdraclient.Client, executionID string, includeOutput
 			msg.output = renderOutputChunks(chunks)
 		}
 		return msg
+	}
+}
+
+func writeStdinCmd(client *cmdraclient.Client, executionID string, data []byte, eof bool) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		err := client.WriteStdin(ctx, executionID, data, eof)
+		return stdinWrittenMsg{executionID: executionID, bytesSent: len(data), eof: eof, err: err}
 	}
 }
 
@@ -1405,6 +1511,9 @@ func (a *app) syncDetailViewport() {
 	if a.detailViewport.Width == 0 || a.detailViewport.Height == 0 {
 		return
 	}
+	if a.detailInputOpen && a.selectedExecutionForInput() == nil {
+		a.closeDetailInput()
+	}
 	if a.detailMeta == nil {
 		a.detailKey = ""
 		switch a.section {
@@ -1429,6 +1538,9 @@ func (a *app) syncDetailViewport() {
 	if len(a.detailOutput) > 0 {
 		lines = append(lines, "", "Output:", strings.Join(a.detailOutput, "\n"))
 	}
+	if selected := a.selectedExecutionForInput(); selected != nil {
+		lines = append(lines, "", "Detail Actions:", "  i  send one stdin line", "  e  send EOF")
+	}
 	a.detailKey = nextKey
 	a.detailViewport.SetContent(strings.Join(lines, "\n"))
 	if previousKey != nextKey {
@@ -1448,6 +1560,29 @@ func (a *app) commandPTYSize() (uint32, uint32) {
 
 func (a *app) attachPTYSize() (uint32, uint32) {
 	return uint32(max(1, a.height-4)), uint32(max(1, a.width-4))
+}
+
+func (a *app) selectedExecutionForInput() *agentv1.Execution {
+	if a.section != sectionExecutions {
+		return nil
+	}
+	selected := a.selectedItem()
+	if selected == nil {
+		return nil
+	}
+	switch selected.GetKind() {
+	case agentv1.ExecutionKind_EXECUTION_KIND_COMMAND:
+		if strings.TrimSpace(selected.GetCommandShell()) == "" {
+			return nil
+		}
+	case agentv1.ExecutionKind_EXECUTION_KIND_SHELL_SESSION:
+	default:
+		return nil
+	}
+	if selected.GetState() != agentv1.ExecutionState_EXECUTION_STATE_RUNNING {
+		return nil
+	}
+	return selected
 }
 
 func (a *app) selectedItem() *agentv1.Execution {
@@ -1643,6 +1778,12 @@ func (a *app) resetTransferForm() {
 	}
 	a.formCursor = 0
 	a.syncFormFocus()
+}
+
+func (a *app) closeDetailInput() {
+	a.detailInputOpen = false
+	a.detailInput.SetValue("")
+	a.detailInput.Blur()
 }
 
 func (a *app) detach() {

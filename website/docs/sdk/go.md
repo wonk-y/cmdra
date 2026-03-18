@@ -85,6 +85,15 @@ details, err := client.GetExecutionWithOutput(ctx, execution.GetExecutionId(), f
 
 `GetExecutionWithOutput` returns both metadata and replayed output chunks.
 
+## Send stdin without attaching
+
+```go
+err = client.WriteStdin(ctx, execution.GetExecutionId(), []byte("printf 'from-write-stdin\\n'\n"), false)
+err = client.WriteStdin(ctx, execution.GetExecutionId(), []byte("exit\n"), true)
+```
+
+`WriteStdin` opens a short-lived attach stream under the hood, writes stdin to the target execution, and closes that helper stream again. Use it when you need to feed a running command or shell session by execution ID without holding a full attach session open.
+
 ## Delete history entries
 
 ```go

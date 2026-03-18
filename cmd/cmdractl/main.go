@@ -117,6 +117,8 @@ func runSubcommand(client *cmdraclient.Client, args []string) error {
 		return runCancel(client, args[1:])
 	case "output":
 		return runOutput(client, args[1:])
+	case "stdin":
+		return runStdin(client, args[1:])
 	case "attach":
 		return runAttach(client, args[1:])
 	case "upload":
@@ -356,6 +358,37 @@ func runOutput(client *cmdraclient.Client, args []string) error {
 			continue
 		}
 		_, _ = os.Stdout.Write(chunk.GetData())
+	}
+	return nil
+}
+
+func runStdin(client *cmdraclient.Client, args []string) error {
+	fs := flag.NewFlagSet("stdin", flag.ContinueOnError)
+	fs.SetOutput(new(bytes.Buffer))
+	var id string
+	var data string
+	var eof bool
+	fs.StringVar(&id, "id", "", "execution id")
+	fs.StringVar(&data, "data", "", "stdin data to send")
+	fs.BoolVar(&eof, "eof", false, "send EOF after the data chunk")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if id == "" {
+		return errors.New("--id is required")
+	}
+	if data == "" && !eof {
+		return errors.New("--data or --eof is required")
+	}
+	if err := client.WriteStdin(context.Background(), id, []byte(data), eof); err != nil {
+		return err
+	}
+	fmt.Printf("Sent stdin to ID: %s\n", id)
+	if data != "" {
+		fmt.Printf("Bytes Sent: %d\n", len(data))
+	}
+	if eof {
+		fmt.Println("EOF: true")
 	}
 	return nil
 }
@@ -710,6 +743,7 @@ Subcommands:
   clear-history
   cancel
   output
+  stdin
   attach
   upload
   download

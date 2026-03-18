@@ -76,6 +76,34 @@ def test_attach_shell_session(managed_daemon):
     assert any(b"attached-output" in chunk for chunk in output_chunks)
 
 
+def test_write_stdin_shell_command(managed_daemon):
+    client = managed_daemon["client_a"]
+    execution = client.start_shell_command("read first; read second; printf '%s-%s\\n' \"$first\" \"$second\"", shell_binary="/bin/sh")
+
+    client.write_stdin(execution.execution_id, b"alpha\n", eof=False)
+    client.write_stdin(execution.execution_id, b"beta\n", eof=True)
+
+    wait_for_completion(client, execution.execution_id)
+    details = client.get_execution_with_output(execution.execution_id)
+    combined = b"".join(chunk.data for chunk in details.output if not chunk.eof)
+
+    assert b"alpha-beta" in combined
+
+
+def test_write_stdin_shell_session(managed_daemon):
+    client = managed_daemon["client_a"]
+    execution = client.start_shell_session("/bin/sh")
+
+    client.write_stdin(execution.execution_id, b"printf 'stdin-session\\n'\n", eof=False)
+    client.write_stdin(execution.execution_id, b"exit\n", eof=True)
+
+    wait_for_completion(client, execution.execution_id)
+    details = client.get_execution_with_output(execution.execution_id)
+    combined = b"".join(chunk.data for chunk in details.output if not chunk.eof)
+
+    assert b"stdin-session" in combined
+
+
 def test_shell_command_with_pty(managed_daemon):
     client = managed_daemon["client_a"]
     execution = client.start_shell_command("printf 'python-pty\\n'", shell_binary="/bin/sh", use_pty=True)

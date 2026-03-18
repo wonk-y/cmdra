@@ -40,6 +40,7 @@ The library exposes the same high-level operations as the Python SDK, including:
 - `Get Execution With Output`
 - `Cancel Execution`
 - `Read Output`
+- `Write Stdin`
 - `Upload File`
 - `Upload File Async`
 - `Download File`
@@ -81,6 +82,24 @@ The Robot wrapper also exposes PTY-specific shell keywords:
 - `Start Shell Session Async With PTY`
 
 Use those when you want terminal-style shell behavior on Unix-like platforms or on Windows through ConPTY.
+
+## Non-interactive stdin keyword
+
+The Robot wrapper also exposes `Write Stdin` for pushing input into a running shell command or shell session without holding an attach stream open.
+
+Example usage:
+
+```robot
+*** Test Cases ***
+Feed A Running Shell Command
+    ${execution}=    Start Shell Command    read line; printf '%s\n' "$line"    shell_binary=/bin/sh
+    ${stdin_line}=    Catenate    SEPARATOR=    robot-write-stdin    ${\n}
+    Write Stdin    ${execution.execution_id}    ${stdin_line}    eof=${True}
+    Sleep    0.2s
+    ${details}=    Get Execution With Output    ${execution.execution_id}
+    ${contains}=    Evaluate    any(b"robot-write-stdin" in chunk.data for chunk in $details.output if not chunk.eof)
+    Should Be True    ${contains}
+```
 
 ## Run the smoke suite
 

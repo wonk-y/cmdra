@@ -163,12 +163,14 @@ Examples:
 ./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key get --id exec-123
 ./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key delete --id exec-123
 ./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key clear-history --yes
+./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key stdin --id exec-123 --data "printf 'hello from stdin\n'\n"
 ./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key upload --local ./README.md --remote /tmp/README.md
 ./cmdractl --address 127.0.0.1:8443 --ca dev/certs/ca.crt --cert dev/certs/client-a.crt --key dev/certs/client-a.key download --remote /tmp/README.md --local ./README.copy
 ```
 
 `get` includes persisted output by internally calling both `GetExecution` and `ReadOutput`.
 `delete` removes one finished execution or transfer from persisted history. `clear-history --yes` removes all finished history for the authenticated identity and reports how many running items were preserved.
+`stdin --id ... --data ... [--eof]` sends one stdin chunk to a running shell command or shell session without holding an interactive attach open.
 `--pty` is available on `start-shell` and `start-session`. `--pty-rows` and `--pty-cols` set the initial terminal size. `attach` automatically pushes terminal size changes for PTY-backed executions and switches the local terminal into raw mode for PTY sessions. PTY mode merges terminal-style output into one stream and is implemented on Unix-like platforms plus Windows through ConPTY.
 
 ## `cmdraui`
@@ -177,6 +179,7 @@ Examples:
 
 - listing executions and transfers
 - inspecting metadata and persisted output
+- sending one stdin line or EOF to a running shell command or shell session from the detail pane
 - starting argv commands, shell commands, and shell sessions
 - optionally enabling PTY mode for shell commands and shell sessions
 - uploading files
@@ -216,6 +219,8 @@ Common controls:
 - `x`: press twice from the executions or transfers list/detail to delete the selected finished item from history
 - `X`: press twice from the executions or transfers sections to clear finished history for the authenticated identity
 - `o`: toggle persisted output when the detail panel is focused
+- `i`: open a one-line stdin prompt in the detail panel for the selected running shell command or shell session
+- `e`: send EOF to the selected running shell command or shell session from the detail panel
 - `enter`: submit the active command or transfer form
 - `[` / `]`: switch form mode
 - `?`: toggle help

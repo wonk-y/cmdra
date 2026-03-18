@@ -238,6 +238,34 @@ class Client:
         output = self.read_output(execution_id, discard_after_read=discard_after_read)
         return ExecutionDetails(execution, output)
 
+    def write_stdin(self, execution_id: str, data: bytes, eof: bool = False) -> None:
+        requests: "queue.Queue[Optional[agent_pb2.AttachRequest]]" = queue.Queue()
+
+        def iterator() -> Iterator[agent_pb2.AttachRequest]:
+            while True:
+                item = requests.get()
+                if item is None:
+                    return
+                yield item
+
+        call = self._stub.Attach(iterator())
+        requests.put(
+            agent_pb2.AttachRequest(
+                start=agent_pb2.AttachStart(
+                    execution_id=execution_id,
+                    replay_buffered=False,
+                    replay_from_offset=0,
+                )
+            )
+        )
+        event = next(call)
+        if not event.HasField("ack"):
+            raise RuntimeError(f"expected attach ack for {execution_id}")
+        requests.put(agent_pb2.AttachRequest(stdin=agent_pb2.StdinChunk(data=data, eof=eof)))
+        requests.put(None)
+        for _ in call:
+            pass
+
     def attach(self, execution_id: str, replay_buffered: bool = True, replay_from_offset: int = 0) -> AttachSession:
         requests: "queue.Queue[Optional[agent_pb2.AttachRequest]]" = queue.Queue()
 
